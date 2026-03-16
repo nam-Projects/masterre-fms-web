@@ -1,7 +1,6 @@
 export type Stage =
   | 'new_site'
   | 'site_survey'
-  | 'report_writing'
   | 'estimate'
   | 'restoration'
   | 'completed'
@@ -83,12 +82,34 @@ export type Job = {
   createdAt: string
   updatedAt: string
   dailyChecked: boolean
+  estimateAmount: number
+  depositAmount: number
+  depositDate: string | null
+}
+
+// 코드 관리 타입 (트리 구조)
+export type CodeType = 'area' | 'labor' | 'material'
+
+export type CodeItem = {
+  id: string
+  codeType: CodeType
+  parentId: string | null
+  name: string
+  rate: number | null
+  unit: string
+  sortOrder: number
+  children?: CodeItem[]
+}
+
+export const CODE_TYPE_LABELS: Record<CodeType, string> = {
+  area: '산출표 항목',
+  labor: '인건비 코드',
+  material: '자재비 코드',
 }
 
 export const STAGES: Stage[] = [
   'new_site',
   'site_survey',
-  'report_writing',
   'estimate',
   'restoration',
   'completed',
@@ -99,7 +120,6 @@ export const STAGES: Stage[] = [
 export const STAGE_LABELS: Record<Stage, string> = {
   new_site: '신규현장',
   site_survey: '현장조사',
-  report_writing: '보고서작성',
   estimate: '견적서',
   restoration: '복구공사',
   completed: '공사완료',
@@ -110,7 +130,6 @@ export const STAGE_LABELS: Record<Stage, string> = {
 export const STAGE_COLORS: Record<Stage, string> = {
   new_site: '#2196F3',
   site_survey: '#FF9800',
-  report_writing: '#9C27B0',
   estimate: '#F44336',
   restoration: '#009688',
   completed: '#4CAF50',

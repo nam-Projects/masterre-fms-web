@@ -4,17 +4,17 @@ import {
   STAGE_COLORS,
   CLAIM_TYPE_LABELS,
   PHOTO_FOLDER_LABELS,
-  STAGES,
 } from '../../types'
 import type { Stage, PhotoFolder } from '../../types'
 import { formatDate } from '../../utils/storage'
 import CommentBox from './CommentBox'
 import StageTransition from './StageTransition'
 import PhotoUploader from './PhotoUploader'
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useJob } from '../../hooks/useJob'
-import { updateStage } from '../../services/jobService'
+import { updateStage, updateJobFinance } from '../../services/jobService'
 import { addComment } from '../../services/commentService'
+import { canAutoTransition } from '../../hooks/useStageValidation'
 
 const PHOTO_FOLDERS: PhotoFolder[] = [
   'before',
@@ -29,6 +29,23 @@ export default function DetailPage() {
   const navigate = useNavigate()
   const { job, loading, error, refetch } = useJob(jobId)
   const [activePhotoTab, setActivePhotoTab] = useState<PhotoFolder>('before')
+  const prevStageRef = useRef<Stage | null>(null)
+
+  // 자동 단계 전환 감지
+  useEffect(() => {
+    if (!job) return
+    // 최초 로드 시에는 자동 전환하지 않음
+    if (prevStageRef.current === null) {
+      prevStageRef.current = job.stage
+      return
+    }
+    // 데이터 변경 후 refetch 시 자동 전환 체크
+    const { allowed, nextStage } = canAutoTransition(job)
+    if (allowed && nextStage && job.stage === prevStageRef.current) {
+      handleStageChange(nextStage)
+    }
+    prevStageRef.current = job.stage
+  }, [job])
 
   if (loading) {
     return (
@@ -55,30 +72,23 @@ export default function DetailPage() {
     refetch()
   }
 
-  const handlePrevStage = async () => {
-    const idx = STAGES.indexOf(job.stage)
-    if (idx > 0) {
-      const prevStage = STAGES[idx - 1] as Stage
-      await updateStage(jobId!, prevStage)
-      await addComment(jobId!, {
-        author: '시스템',
-        text: `단계 변경: ${STAGE_LABELS[job.stage]} → ${STAGE_LABELS[prevStage]}`,
-      })
-      refetch()
-    }
+  const handleStageChange = async (newStage: Stage) => {
+    await updateStage(jobId!, newStage)
+    await addComment(jobId!, {
+      author: '시스템',
+      text: `단계 변경: ${STAGE_LABELS[job.stage]} → ${STAGE_LABELS[newStage]}`,
+    })
+    prevStageRef.current = newStage
+    refetch()
   }
 
-  const handleNextStage = async () => {
-    const idx = STAGES.indexOf(job.stage)
-    if (idx < STAGES.length - 1) {
-      const nextStage = STAGES[idx + 1] as Stage
-      await updateStage(jobId!, nextStage)
-      await addComment(jobId!, {
-        author: '시스템',
-        text: `단계 변경: ${STAGE_LABELS[job.stage]} → ${STAGE_LABELS[nextStage]}`,
-      })
-      refetch()
-    }
+  const handleFinanceUpdate = async (data: {
+    estimateAmount?: number
+    depositAmount?: number
+    depositDate?: string | null
+  }) => {
+    await updateJobFinance(jobId!, data)
+    refetch()
   }
 
   const stageColor = STAGE_COLORS[job.stage]
@@ -228,9 +238,9 @@ export default function DetailPage() {
       {/* 단계 전환 */}
       <section className="detail-card">
         <StageTransition
-          currentStage={job.stage}
-          onPrev={handlePrevStage}
-          onNext={handleNextStage}
+          job={job}
+          onStageChange={handleStageChange}
+          onFinanceUpdate={handleFinanceUpdate}
         />
       </section>
     </div>

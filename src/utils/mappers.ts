@@ -27,6 +27,9 @@ export type DbJobRow = {
   created_by: string | null
   created_at: string
   updated_at: string
+  estimate_amount: number
+  deposit_amount: number
+  deposit_date: string | null
 }
 
 export type DbVictimRow = {
@@ -171,6 +174,9 @@ export function dbRowToJob(
     photos: relations.photos.map(dbRowToPhoto),
     documents: relations.documents.map(dbRowToDocument),
     areaCalculation: relations.areaCalculations.map(dbRowToAreaEntry),
+    estimateAmount: Number(row.estimate_amount) || 0,
+    depositAmount: Number(row.deposit_amount) || 0,
+    depositDate: row.deposit_date,
   }
 }
 

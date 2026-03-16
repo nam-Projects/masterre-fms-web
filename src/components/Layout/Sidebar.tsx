@@ -1,4 +1,4 @@
-import { NavLink, useSearchParams } from 'react-router-dom'
+import { NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { STAGES, STAGE_LABELS, STAGE_COLORS } from '../../types'
 import type { Stage } from '../../types'
 import { useStageCounts } from '../../hooks/useStageCounts'
@@ -9,18 +9,21 @@ type Props = {
 }
 
 export default function Sidebar({ onRegisterClick }: Props) {
-  const [searchParams, setSearchParams] = useSearchParams()
-  const currentFilter = searchParams.get('stage') || 'all'
   const { counts } = useStageCounts()
   const { profile, signOut } = useAuth()
+  const navigate = useNavigate()
+  const location = useLocation()
+  const currentFilter = new URLSearchParams(location.search).get('stage') || 'all'
 
   const handleFilter = (stage: string) => {
     if (stage === 'all') {
-      setSearchParams({})
+      navigate('/')
     } else {
-      setSearchParams({ stage })
+      navigate(`/?stage=${stage}`)
     }
   }
+
+  const isSettingsPage = location.pathname.startsWith('/settings')
 
   return (
     <aside className="sidebar">
@@ -40,8 +43,9 @@ export default function Sidebar({ onRegisterClick }: Props) {
       <div className="sidebar-divider" />
 
       <nav className="sidebar-nav">
+        <div className="sidebar-section-label">프로세스 단계</div>
         <button
-          className={`sidebar-filter ${currentFilter === 'all' ? 'active' : ''}`}
+          className={`sidebar-filter ${currentFilter === 'all' && !isSettingsPage ? 'active' : ''}`}
           onClick={() => handleFilter('all')}
         >
           <span className="filter-dot" style={{ background: '#333' }} />
@@ -52,7 +56,7 @@ export default function Sidebar({ onRegisterClick }: Props) {
         {STAGES.map((s: Stage) => (
           <button
             key={s}
-            className={`sidebar-filter ${currentFilter === s ? 'active' : ''}`}
+            className={`sidebar-filter ${currentFilter === s && !isSettingsPage ? 'active' : ''}`}
             onClick={() => handleFilter(s)}
           >
             <span
@@ -63,6 +67,19 @@ export default function Sidebar({ onRegisterClick }: Props) {
             <span className="filter-count">{counts[s] || 0}</span>
           </button>
         ))}
+      </nav>
+
+      <div className="sidebar-divider" />
+
+      <nav className="sidebar-nav">
+        <div className="sidebar-section-label">설정</div>
+        <button
+          className={`sidebar-filter ${isSettingsPage ? 'active' : ''}`}
+          onClick={() => navigate('/settings/codes')}
+        >
+          <span className="filter-dot" style={{ background: '#795548' }} />
+          <span className="filter-label">코드관리</span>
+        </button>
       </nav>
 
       <div className="sidebar-divider" />

@@ -1237,3 +1237,461 @@
   white-space: nowrap;
   color: #666;
 }
+
+/* ==============================
+   SIDEBAR - 설정 섹션
+   ============================== */
+.sidebar-section-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.4);
+  padding: 8px 12px 4px;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+/* ==============================
+   STAGE TRANSITION - 조건부 UI
+   ============================== */
+.stage-transition-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.stage-transition-header h3 {
+  margin: 0;
+}
+
+.btn-stage-revert {
+  background: none;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-stage-revert:hover {
+  border-color: #999;
+  color: #333;
+}
+
+.stage-conditions {
+  margin-top: 16px;
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.stage-conditions h4 {
+  margin: 0 0 12px;
+  font-size: 0.85rem;
+  color: #555;
+}
+
+.stage-condition-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.stage-condition {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+}
+
+.condition-icon {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+.stage-condition.met .condition-icon {
+  background: #e8f5e9;
+  color: #4caf50;
+}
+
+.stage-condition.unmet .condition-icon {
+  background: #fbe9e7;
+  color: #f44336;
+}
+
+.condition-badge {
+  font-size: 0.7rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: #e0e0e0;
+  color: #666;
+}
+
+.stage-condition.unmet .condition-badge {
+  background: #fbe9e7;
+  color: #e53935;
+}
+
+.stage-action-info {
+  margin-top: 16px;
+  padding: 14px 16px;
+  background: #e3f2fd;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: #1565c0;
+  line-height: 1.5;
+}
+
+.stage-action-info.complete {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.stage-action-buttons {
+  margin-top: 16px;
+  display: flex;
+  gap: 12px;
+}
+
+.btn-stage-action {
+  flex: 1;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-stage-action.primary {
+  background: #1976d2;
+  color: #fff;
+}
+
+.btn-stage-action.primary:hover:not(:disabled) {
+  background: #1565c0;
+}
+
+.btn-stage-action.secondary {
+  background: #f5f5f5;
+  color: #666;
+  border: 1px solid #ddd;
+}
+
+.btn-stage-action.secondary:hover {
+  background: #eee;
+}
+
+.btn-stage-action:disabled,
+.btn-stage-action.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ==============================
+   CLAIMING 금액 폼
+   ============================== */
+.stage-claiming-form {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.claiming-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.claiming-row label {
+  width: 80px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #555;
+  flex-shrink: 0;
+}
+
+.claiming-row input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+.claiming-unit {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.claiming-balance {
+  padding-top: 12px;
+  border-top: 1px solid #eee;
+}
+
+.claiming-balance-value {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #e53935;
+}
+
+.claiming-balance-value.zero {
+  color: #4caf50;
+}
+
+.claiming-auto-note {
+  padding: 10px 14px;
+  background: #e8f5e9;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  color: #2e7d32;
+}
+
+/* ==============================
+   코드관리 페이지
+   ============================== */
+.code-management {
+  max-width: 1100px;
+}
+
+.code-management h2 {
+  margin: 0 0 20px;
+  font-size: 1.4rem;
+}
+
+.code-tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 2px solid #eee;
+  margin-bottom: 20px;
+}
+
+.code-tab {
+  padding: 10px 20px;
+  border: none;
+  background: none;
+  font-size: 0.9rem;
+  color: #666;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  font-weight: 500;
+  transition: all 0.15s;
+}
+
+.code-tab:hover {
+  color: #333;
+}
+
+.code-tab.active {
+  color: #1976d2;
+  border-bottom-color: #1976d2;
+  font-weight: 600;
+}
+
+.code-tree-wrap {
+  background: #fff;
+  border-radius: 8px;
+  border: 1px solid #eee;
+  overflow: hidden;
+}
+
+.code-tree-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid #eee;
+}
+
+.code-table-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.btn-code-add {
+  padding: 6px 14px;
+  border: 1px solid #1976d2;
+  border-radius: 6px;
+  background: #fff;
+  color: #1976d2;
+  font-size: 0.8rem;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.15s;
+}
+
+.btn-code-add:hover {
+  background: #e3f2fd;
+}
+
+.code-empty {
+  padding: 40px;
+  text-align: center;
+  color: #999;
+}
+
+.code-tree {
+  padding: 8px 0;
+}
+
+.tree-node {
+  padding-left: calc(var(--depth, 0) * 24px);
+}
+
+.tree-node-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 16px;
+  min-height: 36px;
+  transition: background 0.1s;
+}
+
+.tree-node-row:hover {
+  background: #f8f9fa;
+}
+
+.tree-node-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+
+.tree-toggle {
+  background: none;
+  border: none;
+  padding: 0 4px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  color: #888;
+  line-height: 1;
+  width: 20px;
+  text-align: center;
+}
+
+.tree-toggle:hover {
+  color: #333;
+}
+
+.tree-leaf-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #ccc;
+  margin: 0 7px;
+  flex-shrink: 0;
+}
+
+.tree-node-name {
+  font-size: 0.85rem;
+  color: #333;
+}
+
+.tree-node-rate {
+  font-size: 0.8rem;
+  color: #1976d2;
+  font-weight: 500;
+  margin-left: 8px;
+  font-variant-numeric: tabular-nums;
+}
+
+.tree-node-actions {
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.tree-node-row:hover .tree-node-actions {
+  opacity: 1;
+}
+
+.btn-tree-action {
+  padding: 2px 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  cursor: pointer;
+  background: #fff;
+  color: #666;
+  transition: all 0.15s;
+}
+
+.btn-tree-action:hover {
+  background: #e3f2fd;
+  color: #1976d2;
+  border-color: #1976d2;
+}
+
+.btn-tree-action.delete:hover {
+  background: #fbe9e7;
+  color: #e53935;
+  border-color: #e53935;
+}
+
+.tree-edit-inline {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tree-edit-input {
+  padding: 4px 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  width: 160px;
+}
+
+.tree-edit-rate {
+  width: 100px;
+}
+
+.tree-children {
+  border-left: 1px solid #e8e8e8;
+  margin-left: 26px;
+}
+
+.btn-code-save,
+.btn-code-cancel {
+  padding: 3px 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  background: #fff;
+  transition: all 0.15s;
+}
+
+.btn-code-save {
+  background: #1976d2;
+  color: #fff;
+  border-color: #1976d2;
+}
+
+.btn-code-save:hover { background: #1565c0; }
+.btn-code-cancel:hover { background: #f5f5f5; }
+
+.code-loading {
+  padding: 40px;
+  text-align: center;
+  color: #999;
+}

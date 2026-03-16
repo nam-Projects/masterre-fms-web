@@ -162,6 +162,26 @@ export async function updateStage(id: string, newStage: Stage): Promise<void> {
 }
 
 // ============================================================
+// 금액 업데이트
+// ============================================================
+
+export async function updateJobFinance(
+  id: string,
+  data: {
+    estimateAmount?: number
+    depositAmount?: number
+    depositDate?: string | null
+  },
+): Promise<void> {
+  const updates: Record<string, unknown> = {}
+  if (data.estimateAmount !== undefined) updates.estimate_amount = data.estimateAmount
+  if (data.depositAmount !== undefined) updates.deposit_amount = data.depositAmount
+  if (data.depositDate !== undefined) updates.deposit_date = data.depositDate
+  const { error } = await supabase.from('jobs').update(updates).eq('id', id)
+  if (error) throw error
+}
+
+// ============================================================
 // 삭제
 // ============================================================
 
