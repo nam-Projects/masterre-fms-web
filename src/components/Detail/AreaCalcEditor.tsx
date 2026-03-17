@@ -231,7 +231,6 @@ export default function AreaCalcEditor({ jobId, existing, onClose, onSaved }: Pr
                   roomTree={roomTree}
                   usedRooms={usedRooms}
                   onSelect={addBlock}
-                  onClose={() => setShowPicker(false)}
                 />
               )}
             </div>
@@ -282,12 +281,10 @@ function RoomPicker({
   roomTree,
   usedRooms,
   onSelect,
-  onClose,
 }: {
   roomTree: CodeItem[]
   usedRooms: Set<string>
   onSelect: (roomName: string, categoryName: string) => void
-  onClose: () => void
 }) {
   return (
     <div className="area-calc-picker-dropdown">
