@@ -10,6 +10,7 @@ import { formatDate } from '../../utils/storage'
 import CommentBox from './CommentBox'
 import StageTransition from './StageTransition'
 import PhotoUploader from './PhotoUploader'
+import AreaCalcEditor from './AreaCalcEditor'
 import { useState, useEffect, useRef } from 'react'
 import { useJob } from '../../hooks/useJob'
 import { updateStage, updateJobFinance } from '../../services/jobService'
@@ -29,6 +30,7 @@ export default function DetailPage() {
   const navigate = useNavigate()
   const { job, loading, error, refetch } = useJob(jobId)
   const [activePhotoTab, setActivePhotoTab] = useState<PhotoFolder>('before')
+  const [showAreaCalc, setShowAreaCalc] = useState(false)
   const prevStageRef = useRef<Stage | null>(null)
 
   // 자동 단계 전환 감지
@@ -212,9 +214,12 @@ export default function DetailPage() {
       <section className="detail-card">
         <h3>문서</h3>
         <div className="doc-buttons">
-          <button className="doc-btn">
+          <button className="doc-btn" onClick={() => setShowAreaCalc(true)}>
             <span className="doc-btn-label">A</span>
             <span>피해복구면적산출표</span>
+            {job.areaCalculation.length > 0 && (
+              <span className="doc-btn-badge">{job.areaCalculation.length}</span>
+            )}
           </button>
           <button className="doc-btn">
             <span className="doc-btn-label">B</span>
@@ -243,6 +248,18 @@ export default function DetailPage() {
           onFinanceUpdate={handleFinanceUpdate}
         />
       </section>
+
+      {showAreaCalc && (
+        <AreaCalcEditor
+          jobId={jobId!}
+          existing={job.areaCalculation}
+          onClose={() => setShowAreaCalc(false)}
+          onSaved={() => {
+            setShowAreaCalc(false)
+            refetch()
+          }}
+        />
+      )}
     </div>
   )
 }

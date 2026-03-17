@@ -7,122 +7,72 @@
 DELETE FROM code_items;
 
 -- ============================================================
--- 산출표 코드 (area) - DO 블록으로 변수 사용
+-- 산출표 서식 템플릿 (area) - 3개 템플릿만 정의
+-- 방, 욕실, 발코니 각각의 부위→공종 구조
+-- ============================================================
+DO $$
+DECLARE
+  v_tmpl uuid;
+  v_scope uuid;
+BEGIN
+  -- ─── 방 템플릿 ───
+  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', null, '방', 1) RETURNING id INTO v_tmpl;
+  -- 천장
+  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', v_tmpl, '천장', 1) RETURNING id INTO v_scope;
+  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', v_scope, '석고보드', 1),('area', v_scope, '합판', 2),('area', v_scope, 'MDF 등박스', 3),('area', v_scope, '텍스', 4),('area', v_scope, '도배(실크지)', 5),('area', v_scope, '도배(합지)', 6),('area', v_scope, '몰딩', 7),('area', v_scope, '도장', 8),('area', v_scope, '기타', 9);
+  -- 벽체
+  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', v_tmpl, '벽체', 2) RETURNING id INTO v_scope;
+  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', v_scope, '석고보드', 1),('area', v_scope, '합판', 2),('area', v_scope, '도배(실크지)', 3),('area', v_scope, '도배(합지)', 4),('area', v_scope, '기타', 5);
+  -- 바닥
+  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', v_tmpl, '바닥', 3) RETURNING id INTO v_scope;
+  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', v_scope, '걸레받이', 1),('area', v_scope, '원목마루', 2),('area', v_scope, '강마루', 3),('area', v_scope, '강화마루', 4),('area', v_scope, '장판', 5),('area', v_scope, '기타', 6);
+  -- 기타
+  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', v_tmpl, '기타', 4) RETURNING id INTO v_scope;
+  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', v_scope, '기타', 1);
+
+  -- ─── 욕실 템플릿 ───
+  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', null, '욕실', 2) RETURNING id INTO v_tmpl;
+  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', v_tmpl, '천장', 1) RETURNING id INTO v_scope;
+  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', v_scope, 'SMC천장', 1),('area', v_scope, '리빙보드', 2),('area', v_scope, '합판', 3),('area', v_scope, '기타', 4);
+  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', v_tmpl, '벽체', 2) RETURNING id INTO v_scope;
+  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', v_scope, '타일', 1);
+  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', v_tmpl, '바닥', 3) RETURNING id INTO v_scope;
+  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', v_scope, '타일', 1),('area', v_scope, '기타', 2);
+  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', v_tmpl, '기타', 4) RETURNING id INTO v_scope;
+  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', v_scope, '기타', 1);
+
+  -- ─── 발코니 템플릿 ───
+  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', null, '발코니', 3) RETURNING id INTO v_tmpl;
+  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', v_tmpl, '도장', 1) RETURNING id INTO v_scope;
+  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', v_scope, '수성페인트', 1),('area', v_scope, '무늬코트', 2),('area', v_scope, '탄성페인트', 3);
+END $$;
+
+-- ============================================================
+-- 산출표 장소 목록 (area_room) - 각 장소가 어떤 템플릿을 사용하는지
+-- Level 1 = 템플릿 카테고리(방, 욕실, 발코니)와 동일 이름
+-- Level 2 = 실제 장소 이름
 -- ============================================================
 DO $$
 DECLARE
   v_cat uuid;
-  v_scope uuid;
 BEGIN
-  -- 전실
-  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', null, '전실', 1) RETURNING id INTO v_cat;
-  -- 천장
-  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', v_cat, '천장', 1) RETURNING id INTO v_scope;
-  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', v_scope, '석고보드', 1),('area', v_scope, '합판', 2),('area', v_scope, 'MDF 등박스', 3),('area', v_scope, '텍스', 4),('area', v_scope, '도배(실크지)', 5),('area', v_scope, '도배(합지)', 6),('area', v_scope, '몰딩', 7),('area', v_scope, '도장', 8),('area', v_scope, '기타', 9);
-  -- 벽체
-  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', v_cat, '벽체', 2) RETURNING id INTO v_scope;
-  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', v_scope, '석고보드', 1),('area', v_scope, '합판', 2),('area', v_scope, '도배(실크지)', 3),('area', v_scope, '도배(합지)', 4),('area', v_scope, '기타', 5);
-  -- 바닥
-  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', v_cat, '바닥', 3) RETURNING id INTO v_scope;
-  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', v_scope, '걸레받이', 1),('area', v_scope, '원목마루', 2),('area', v_scope, '강마루', 3),('area', v_scope, '강화마루', 4),('area', v_scope, '장판', 5),('area', v_scope, '기타', 6);
-  -- 기타
-  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', v_cat, '기타', 4) RETURNING id INTO v_scope;
-  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', v_scope, '기타', 1);
+  -- 방 카테고리
+  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area_room', null, '방', 1) RETURNING id INTO v_cat;
+  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES
+    ('area_room', v_cat, '전실', 1),('area_room', v_cat, '거실', 2),('area_room', v_cat, '주방', 3),
+    ('area_room', v_cat, '복도', 4),('area_room', v_cat, '안방', 5),('area_room', v_cat, '작은방1', 6),
+    ('area_room', v_cat, '작은방2', 7),('area_room', v_cat, '작은방3', 8),('area_room', v_cat, '작은방4', 9);
 
-  -- 거실
-  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', null, '거실', 2) RETURNING id INTO v_cat;
-  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', v_cat, '천장', 1) RETURNING id INTO v_scope;
-  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', v_scope, '석고보드', 1),('area', v_scope, '합판', 2),('area', v_scope, 'MDF 등박스', 3),('area', v_scope, '텍스', 4),('area', v_scope, '도배(실크지)', 5),('area', v_scope, '도배(합지)', 6),('area', v_scope, '몰딩', 7),('area', v_scope, '도장', 8),('area', v_scope, '기타', 9);
+  -- 욕실 카테고리
+  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area_room', null, '욕실', 2) RETURNING id INTO v_cat;
+  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES
+    ('area_room', v_cat, '욕실1', 1),('area_room', v_cat, '욕실2', 2),('area_room', v_cat, '욕실3', 3);
 
-  -- 주방
-  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', null, '주방', 3) RETURNING id INTO v_cat;
-  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', v_cat, '천장', 1) RETURNING id INTO v_scope;
-  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', v_scope, '석고보드', 1),('area', v_scope, '합판', 2),('area', v_scope, 'MDF 등박스', 3),('area', v_scope, '텍스', 4),('area', v_scope, '도배(실크지)', 5),('area', v_scope, '도배(합지)', 6),('area', v_scope, '몰딩', 7),('area', v_scope, '도장', 8),('area', v_scope, '기타', 9);
-
-  -- 복도
-  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', null, '복도', 4) RETURNING id INTO v_cat;
-  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', v_cat, '천장', 1) RETURNING id INTO v_scope;
-  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', v_scope, '석고보드', 1),('area', v_scope, '합판', 2),('area', v_scope, '텍스', 3),('area', v_scope, '도배(실크지)', 4),('area', v_scope, '도배(합지)', 5),('area', v_scope, '몰딩', 6),('area', v_scope, '도장', 7),('area', v_scope, '기타', 8);
-
-  -- 안방
-  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', null, '안방', 5) RETURNING id INTO v_cat;
-  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', v_cat, '천장', 1) RETURNING id INTO v_scope;
-  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', v_scope, '석고보드', 1),('area', v_scope, '합판', 2),('area', v_scope, '텍스', 3),('area', v_scope, '도배(실크지)', 4),('area', v_scope, '도배(합지)', 5),('area', v_scope, '몰딩', 6),('area', v_scope, '도장', 7),('area', v_scope, '기타', 8);
-
-  -- 작은방1
-  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', null, '작은방1', 6) RETURNING id INTO v_cat;
-  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', v_cat, '천장', 1) RETURNING id INTO v_scope;
-  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', v_scope, '석고보드', 1),('area', v_scope, '합판', 2),('area', v_scope, '도배(실크지)', 3),('area', v_scope, '도배(합지)', 4),('area', v_scope, '몰딩', 5),('area', v_scope, '도장', 6),('area', v_scope, '기타', 7);
-
-  -- 작은방2
-  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', null, '작은방2', 7) RETURNING id INTO v_cat;
-  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', v_cat, '천장', 1) RETURNING id INTO v_scope;
-  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', v_scope, '석고보드', 1),('area', v_scope, '합판', 2),('area', v_scope, '도배(실크지)', 3),('area', v_scope, '도배(합지)', 4),('area', v_scope, '몰딩', 5),('area', v_scope, '도장', 6),('area', v_scope, '기타', 7);
-
-  -- 작은방3
-  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', null, '작은방3', 8) RETURNING id INTO v_cat;
-  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', v_cat, '천장', 1) RETURNING id INTO v_scope;
-  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', v_scope, '석고보드', 1),('area', v_scope, '합판', 2),('area', v_scope, '도배(실크지)', 3),('area', v_scope, '도배(합지)', 4),('area', v_scope, '몰딩', 5),('area', v_scope, '도장', 6),('area', v_scope, '기타', 7);
-
-  -- 작은방4
-  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', null, '작은방4', 9) RETURNING id INTO v_cat;
-  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', v_cat, '천장', 1) RETURNING id INTO v_scope;
-  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', v_scope, '석고보드', 1),('area', v_scope, '합판', 2),('area', v_scope, '도배(실크지)', 3),('area', v_scope, '도배(합지)', 4),('area', v_scope, '몰딩', 5),('area', v_scope, '도장', 6),('area', v_scope, '기타', 7);
-
-  -- 욕실1
-  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', null, '욕실1', 10) RETURNING id INTO v_cat;
-  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', v_cat, '천장', 1) RETURNING id INTO v_scope;
-  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', v_scope, 'SMC천장', 1),('area', v_scope, '리빙보드', 2),('area', v_scope, '합판', 3),('area', v_scope, '기타', 4);
-  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', v_cat, '벽체', 2) RETURNING id INTO v_scope;
-  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', v_scope, '타일', 1);
-  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', v_cat, '바닥', 3) RETURNING id INTO v_scope;
-  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', v_scope, '타일', 1),('area', v_scope, '기타', 2);
-  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', v_cat, '기타', 4) RETURNING id INTO v_scope;
-  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', v_scope, '기타', 1);
-
-  -- 욕실2
-  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', null, '욕실2', 11) RETURNING id INTO v_cat;
-  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', v_cat, '천장', 1) RETURNING id INTO v_scope;
-  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', v_scope, 'SMC천장', 1),('area', v_scope, '리빙보드', 2),('area', v_scope, '합판', 3),('area', v_scope, '기타', 4);
-  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', v_cat, '벽체', 2) RETURNING id INTO v_scope;
-  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', v_scope, '타일', 1);
-  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', v_cat, '바닥', 3) RETURNING id INTO v_scope;
-  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', v_scope, '타일', 1),('area', v_scope, '기타', 2);
-
-  -- 욕실3
-  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', null, '욕실3', 12) RETURNING id INTO v_cat;
-  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', v_cat, '천장', 1) RETURNING id INTO v_scope;
-  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', v_scope, 'SMC천장', 1),('area', v_scope, '리빙보드', 2),('area', v_scope, '합판', 3),('area', v_scope, '기타', 4);
-  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', v_cat, '벽체', 2) RETURNING id INTO v_scope;
-  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', v_scope, '타일', 1);
-  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', v_cat, '바닥', 3) RETURNING id INTO v_scope;
-  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', v_scope, '타일', 1),('area', v_scope, '기타', 2);
-
-  -- 전면발코니1~3
-  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', null, '전면발코니1', 13) RETURNING id INTO v_cat;
-  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', v_cat, '도장', 1) RETURNING id INTO v_scope;
-  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', v_scope, '수성페인트', 1),('area', v_scope, '무늬코트', 2),('area', v_scope, '탄성페인트', 3);
-
-  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', null, '전면발코니2', 14) RETURNING id INTO v_cat;
-  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', v_cat, '도장', 1) RETURNING id INTO v_scope;
-  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', v_scope, '수성페인트', 1),('area', v_scope, '무늬코트', 2),('area', v_scope, '탄성페인트', 3);
-
-  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', null, '전면발코니3', 15) RETURNING id INTO v_cat;
-  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', v_cat, '도장', 1) RETURNING id INTO v_scope;
-  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', v_scope, '수성페인트', 1),('area', v_scope, '무늬코트', 2),('area', v_scope, '탄성페인트', 3);
-
-  -- 후면발코니1~3
-  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', null, '후면발코니1', 16) RETURNING id INTO v_cat;
-  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', v_cat, '도장', 1) RETURNING id INTO v_scope;
-  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', v_scope, '수성페인트', 1),('area', v_scope, '무늬코트', 2),('area', v_scope, '탄성페인트', 3);
-
-  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', null, '후면발코니2', 17) RETURNING id INTO v_cat;
-  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', v_cat, '도장', 1) RETURNING id INTO v_scope;
-  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', v_scope, '수성페인트', 1),('area', v_scope, '무늬코트', 2),('area', v_scope, '탄성페인트', 3);
-
-  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', null, '후면발코니3', 18) RETURNING id INTO v_cat;
-  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', v_cat, '도장', 1) RETURNING id INTO v_scope;
-  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area', v_scope, '수성페인트', 1),('area', v_scope, '무늬코트', 2),('area', v_scope, '탄성페인트', 3);
+  -- 발코니 카테고리
+  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES ('area_room', null, '발코니', 3) RETURNING id INTO v_cat;
+  INSERT INTO code_items (code_type, parent_id, name, sort_order) VALUES
+    ('area_room', v_cat, '전면발코니1', 1),('area_room', v_cat, '전면발코니2', 2),('area_room', v_cat, '전면발코니3', 3),
+    ('area_room', v_cat, '후면발코니1', 4),('area_room', v_cat, '후면발코니2', 5),('area_room', v_cat, '후면발코니3', 6);
 END $$;
 
 -- ============================================================

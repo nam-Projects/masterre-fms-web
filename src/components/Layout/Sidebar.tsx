@@ -74,11 +74,18 @@ export default function Sidebar({ onRegisterClick }: Props) {
       <nav className="sidebar-nav">
         <div className="sidebar-section-label">설정</div>
         <button
-          className={`sidebar-filter ${isSettingsPage ? 'active' : ''}`}
+          className={`sidebar-filter ${location.pathname === '/settings/codes' ? 'active' : ''}`}
           onClick={() => navigate('/settings/codes')}
         >
           <span className="filter-dot" style={{ background: '#795548' }} />
           <span className="filter-label">코드관리</span>
+        </button>
+        <button
+          className={`sidebar-filter ${location.pathname === '/settings/guide' ? 'active' : ''}`}
+          onClick={() => navigate('/settings/guide')}
+        >
+          <span className="filter-dot" style={{ background: '#5C6BC0' }} />
+          <span className="filter-label">단계 매뉴얼</span>
         </button>
       </nav>
 

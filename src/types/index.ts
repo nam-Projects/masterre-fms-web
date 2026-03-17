@@ -88,7 +88,9 @@ export type Job = {
 }
 
 // 코드 관리 타입 (트리 구조)
-export type CodeType = 'area' | 'labor' | 'material'
+// area: 산출표 서식 템플릿 (방→천장/벽체/바닥→공종, 욕실→..., 발코니→...)
+// area_room: 산출표 장소 목록 (방→전실/거실/..., 욕실→욕실1/..., 발코니→전면발코니1/...)
+export type CodeType = 'area' | 'area_room' | 'labor' | 'material'
 
 export type CodeItem = {
   id: string
@@ -102,7 +104,8 @@ export type CodeItem = {
 }
 
 export const CODE_TYPE_LABELS: Record<CodeType, string> = {
-  area: '산출표 항목',
+  area: '산출표 서식',
+  area_room: '산출표 장소',
   labor: '인건비 코드',
   material: '자재비 코드',
 }

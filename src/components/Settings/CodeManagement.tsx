@@ -8,7 +8,7 @@ import {
   deleteCodeItem,
 } from '../../services/codeService'
 
-const CODE_TYPES: CodeType[] = ['area', 'labor', 'material']
+const CODE_TYPES: CodeType[] = ['area', 'area_room', 'labor', 'material']
 
 export default function CodeManagement() {
   const [tab, setTab] = useState<CodeType>('area')
