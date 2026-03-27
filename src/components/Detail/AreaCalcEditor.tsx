@@ -1,10 +1,18 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
+import html2canvas from 'html2canvas'
 import type { CodeItem, AreaEntry } from '../../types'
 import { listCodeTree } from '../../services/codeService'
 import { saveAreaEntries } from '../../services/areaCalcService'
 
+type JobInfo = {
+  insurer: string
+  accidentNo: string
+  address: string
+}
+
 type Props = {
   jobId: string
+  jobInfo: JobInfo
   existing: AreaEntry[]
   onClose: () => void
   onSaved: () => void
@@ -84,12 +92,16 @@ function FixedDropdown({
   )
 }
 
-export default function AreaCalcEditor({ jobId, existing, onClose, onSaved }: Props) {
+export default function AreaCalcEditor({ jobId, jobInfo, existing, onClose, onSaved }: Props) {
   const [templates, setTemplates] = useState<CodeItem[]>([])
   const [roomTree, setRoomTree] = useState<CodeItem[]>([])
   const [blocks, setBlocks] = useState<Block[]>([])
   const [saving, setSaving] = useState(false)
   const [showPicker, setShowPicker] = useState(false)
+  const [exporting, setExporting] = useState(false)
+  const [dispatcher, setDispatcher] = useState('')
+  const [receiptNo, setReceiptNo] = useState(jobInfo.accidentNo || '')
+  const captureRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     Promise.all([
@@ -211,6 +223,25 @@ export default function AreaCalcEditor({ jobId, existing, onClose, onSaved }: Pr
     }
   }
 
+  const handleDownloadImage = async () => {
+    if (!captureRef.current) return
+    setExporting(true)
+    try {
+      const canvas = await html2canvas(captureRef.current, {
+        backgroundColor: '#ffffff',
+        scale: 2,
+      })
+      const link = document.createElement('a')
+      link.download = '피해복구면적산출표.png'
+      link.href = canvas.toDataURL('image/png')
+      link.click()
+    } catch (err) {
+      alert('이미지 생성 실패')
+    } finally {
+      setExporting(false)
+    }
+  }
+
   const usedRooms = new Set(blocks.map(b => b.room))
 
   return (
@@ -240,7 +271,45 @@ export default function AreaCalcEditor({ jobId, existing, onClose, onSaved }: Pr
           </div>
         </div>
 
-        <div className="area-calc-body">
+        <div className="area-calc-body" ref={captureRef}>
+          <div className="area-calc-info-header">
+            <div className="area-calc-info-title">현장 피해/복구 면적 산출표</div>
+            <table className="area-calc-info-table">
+              <tbody>
+                <tr>
+                  <th>보험사</th>
+                  <td>{jobInfo.insurer}</td>
+                  <th>접수번호</th>
+                  <td>
+                    <input
+                      type="text"
+                      className="area-info-input"
+                      placeholder="접수번호 입력"
+                      value={receiptNo}
+                      onChange={e => setReceiptNo(e.target.value)}
+                    />
+                  </td>
+                  <th>출동자</th>
+                  <td>
+                    <input
+                      type="text"
+                      className="area-info-input"
+                      placeholder="출동자명 입력"
+                      value={dispatcher}
+                      onChange={e => setDispatcher(e.target.value)}
+                    />
+                  </td>
+                </tr>
+                <tr>
+                  <th>주소</th>
+                  <td colSpan={3}>{jobInfo.address}</td>
+                  <th>작성일자</th>
+                  <td>{new Date().toISOString().slice(0, 10)}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
           {blocks.length === 0 ? (
             <div className="area-calc-empty">
               "장소 추가" 버튼을 눌러 장소를 선택하세요.
@@ -260,17 +329,27 @@ export default function AreaCalcEditor({ jobId, existing, onClose, onSaved }: Pr
               />
             ))
           )}
+          {blocks.length > 0 && <SummaryTable blocks={blocks} />}
         </div>
 
         <div className="area-calc-footer">
-          <button className="btn-secondary" onClick={onClose}>닫기</button>
           <button
-            className="btn-primary"
-            onClick={handleSave}
-            disabled={saving || blocks.length === 0}
+            className="btn-secondary"
+            onClick={handleDownloadImage}
+            disabled={exporting || blocks.length === 0}
           >
-            {saving ? '저장 중...' : '저장'}
+            {exporting ? '생성 중...' : '이미지 다운로드'}
           </button>
+          <div className="area-calc-footer-right">
+            <button className="btn-secondary" onClick={onClose}>닫기</button>
+            <button
+              className="btn-primary"
+              onClick={handleSave}
+              disabled={saving || blocks.length === 0}
+            >
+              {saving ? '저장 중...' : '저장'}
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -512,6 +591,53 @@ function BlockTable({
           </tbody>
         </table>
       )}
+    </div>
+  )
+}
+
+// 현장 실측 정보 SUMMARY – 구분(공사내용) 기준 합산
+function SummaryTable({ blocks }: { blocks: Block[] }) {
+  const summaryMap = new Map<string, { damageArea: number; restoreArea: number }>()
+
+  for (const block of blocks) {
+    for (const row of block.rows) {
+      const key = `${row.scope}(${row.workType})`
+      const prev = summaryMap.get(key) || { damageArea: 0, restoreArea: 0 }
+      prev.damageArea += round2(row.damageWidth * row.damageHeight)
+      prev.restoreArea += round2(row.restoreWidth * row.restoreHeight)
+      summaryMap.set(key, prev)
+    }
+  }
+
+  if (summaryMap.size === 0) return null
+
+  const entries = Array.from(summaryMap.entries())
+
+  return (
+    <div className="area-summary">
+      <div className="area-summary-title">현장 실측 정보 SUMMARY</div>
+      <table className="area-table area-summary-table">
+        <thead>
+          <tr>
+            <th>공사내용</th>
+            <th>피해면적</th>
+            <th>복구면적</th>
+          </tr>
+        </thead>
+        <tbody>
+          {entries.map(([key, val]) => (
+            <tr key={key}>
+              <td className="area-worktype-cell">{key}</td>
+              <td className={`area-calc-cell ${val.damageArea > 0 ? 'has-value' : ''}`}>
+                {round2(val.damageArea)}
+              </td>
+              <td className={`area-calc-cell restore ${val.restoreArea > 0 ? 'has-value' : ''}`}>
+                {round2(val.restoreArea)}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   )
 }

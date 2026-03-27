@@ -131,8 +131,6 @@ function StageActions({
 }
 
 function EstimateActions({ job, onStageChange }: { job: Job; onStageChange: (stage: Stage) => Promise<void> }) {
-  const hasEstimate = job.documents.some(d => d.type === 'estimate_doc')
-
   return (
     <div className="stage-action-buttons">
       <button
@@ -142,10 +140,10 @@ function EstimateActions({ job, onStageChange }: { job: Job; onStageChange: (sta
         견적서 생략
       </button>
       <button
-        className={`btn-stage-action primary ${!hasEstimate ? 'disabled' : ''}`}
-        onClick={() => hasEstimate && onStageChange('restoration')}
-        disabled={!hasEstimate}
-        title={!hasEstimate ? '견적서를 먼저 업로드해주세요' : undefined}
+        className={`btn-stage-action primary ${!job.hasEstimate ? 'disabled' : ''}`}
+        onClick={() => job.hasEstimate && onStageChange('restoration')}
+        disabled={!job.hasEstimate}
+        title={!job.hasEstimate ? '견적서를 먼저 작성해주세요' : undefined}
       >
         공사승인 완료
       </button>

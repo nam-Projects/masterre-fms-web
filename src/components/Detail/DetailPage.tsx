@@ -11,6 +11,8 @@ import CommentBox from './CommentBox'
 import StageTransition from './StageTransition'
 import PhotoUploader from './PhotoUploader'
 import AreaCalcEditor from './AreaCalcEditor'
+import FloorPlanEditor from './FloorPlanEditor'
+import EstimateEditor from './EstimateEditor'
 import { useState, useEffect, useRef } from 'react'
 import { useJob } from '../../hooks/useJob'
 import { updateStage, updateJobFinance } from '../../services/jobService'
@@ -31,6 +33,8 @@ export default function DetailPage() {
   const { job, loading, error, refetch } = useJob(jobId)
   const [activePhotoTab, setActivePhotoTab] = useState<PhotoFolder>('before')
   const [showAreaCalc, setShowAreaCalc] = useState(false)
+  const [showFloorPlan, setShowFloorPlan] = useState(false)
+  const [showEstimate, setShowEstimate] = useState(false)
   const prevStageRef = useRef<Stage | null>(null)
 
   // 자동 단계 전환 감지
@@ -221,21 +225,21 @@ export default function DetailPage() {
               <span className="doc-btn-badge">{job.areaCalculation.length}</span>
             )}
           </button>
-          <button className="doc-btn">
+          <button className="doc-btn" onClick={() => setShowFloorPlan(true)}>
             <span className="doc-btn-label">B</span>
             <span>평면도</span>
           </button>
-          <button className="doc-btn">
+          <button className="doc-btn" onClick={() => setShowEstimate(true)}>
             <span className="doc-btn-label">C</span>
             <span>견적서</span>
           </button>
           <button className="doc-btn disabled">
             <span className="doc-btn-label">D</span>
-            <span>미정</span>
+            <span>보험금청구서 및 개인정보 서류</span>
           </button>
           <button className="doc-btn disabled">
             <span className="doc-btn-label">E</span>
-            <span>미정</span>
+            <span>기타</span>
           </button>
         </div>
       </section>
@@ -249,9 +253,33 @@ export default function DetailPage() {
         />
       </section>
 
+      {showEstimate && (
+        <EstimateEditor
+          jobId={jobId!}
+          address={job.address}
+          onClose={() => setShowEstimate(false)}
+          onSaved={() => {
+            setShowEstimate(false)
+            refetch()
+          }}
+        />
+      )}
+
+      {showFloorPlan && (
+        <FloorPlanEditor
+          jobId={jobId!}
+          onClose={() => setShowFloorPlan(false)}
+        />
+      )}
+
       {showAreaCalc && (
         <AreaCalcEditor
           jobId={jobId!}
+          jobInfo={{
+            insurer: job.insurer,
+            accidentNo: job.accidentNo,
+            address: job.address,
+          }}
           existing={job.areaCalculation}
           onClose={() => setShowAreaCalc(false)}
           onSaved={() => {

@@ -25,15 +25,15 @@ export function getStageConditions(job: Job): StageCondition[] {
         },
         {
           label: '평면도 업로드',
-          met: job.documents.some(d => d.type === 'floor_plan'),
+          met: job.hasFloorPlan,
           required: true,
         },
       ]
     case 'estimate':
       return [
         {
-          label: '견적서 업로드',
-          met: job.documents.some(d => d.type === 'estimate_doc'),
+          label: '견적서 작성',
+          met: job.hasEstimate,
           required: false,
         },
       ]
@@ -83,7 +83,7 @@ export function canAutoTransition(job: Job): { allowed: boolean; nextStage: Stag
     case 'site_survey':
       if (
         job.areaCalculation.length > 0 &&
-        job.documents.some(d => d.type === 'floor_plan')
+        job.hasFloorPlan
       ) {
         return { allowed: true, nextStage: 'estimate' }
       }

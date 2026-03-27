@@ -53,6 +53,90 @@ export type AreaEntry = {
   note: string
 }
 
+// 평면도 어노테이션
+export type AnnotationShape = {
+  id: string
+  type: 'circle'
+  x: number
+  y: number
+  radius: number
+  color: string
+} | {
+  id: string
+  type: 'rect'
+  x: number
+  y: number
+  width: number
+  height: number
+  color: string
+} | {
+  id: string
+  type: 'callout'
+  targetX: number
+  targetY: number
+  labelX: number
+  labelY: number
+  text: string
+  color: string
+}
+
+export type FloorPlanData = {
+  id: string
+  jobId: string
+  imageStoragePath: string
+  imageName: string
+  annotations: AnnotationShape[]
+  createdAt: string
+  updatedAt: string
+}
+
+// 견적서
+export type EstimateItemType = 'labor' | 'material' | 'expense' | 'etc'
+
+export type EstimateItem = {
+  id: string
+  section: string
+  itemType: EstimateItemType
+  description: string
+  codeName: string
+  codeItemId: string | null
+  unit: string
+  quantity: number
+  unitPrice: number
+  amount: number
+  note: string
+  sortOrder: number
+}
+
+export type Estimate = {
+  id: string
+  jobId: string
+  addressLabel: string
+  estimateDate: string
+  vatType: string
+  mgmtRate: number
+  profitRate: number
+  roundingTarget: number
+  items: EstimateItem[]
+  createdAt: string
+  updatedAt: string
+}
+
+export type BizProfile = {
+  bizRegistrationNo: string
+  bizName: string
+  bizCeo: string
+  bizAddress: string
+  bizPhone: string
+}
+
+export const ITEM_TYPE_LABELS: Record<EstimateItemType, string> = {
+  labor: '노무비',
+  material: '자재비',
+  expense: '경비',
+  etc: '기타',
+}
+
 export type Victim = {
   name: string
   phone: string
@@ -85,6 +169,8 @@ export type Job = {
   estimateAmount: number
   depositAmount: number
   depositDate: string | null
+  hasFloorPlan: boolean
+  hasEstimate: boolean
 }
 
 // 코드 관리 타입 (트리 구조)

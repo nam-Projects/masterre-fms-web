@@ -109,3 +109,63 @@ export async function deleteCodeItem(id: string): Promise<void> {
   const { error } = await supabase.from('code_items').delete().eq('id', id)
   if (error) throw error
 }
+
+// ============================================================
+// 단가 변경 (이력 자동 기록)
+// ============================================================
+
+export async function updateRate(
+  id: string,
+  oldRate: number | null,
+  newRate: number | null,
+  effectiveDate: string,
+  changedBy: string,
+): Promise<void> {
+  // 이력 기록
+  const { error: histErr } = await supabase.from('rate_history').insert({
+    code_item_id: id,
+    old_rate: oldRate,
+    new_rate: newRate,
+    effective_date: effectiveDate,
+    changed_by: changedBy,
+  })
+  if (histErr) throw histErr
+
+  // 현재 단가 업데이트
+  const { error } = await supabase
+    .from('code_items')
+    .update({ rate: newRate })
+    .eq('id', id)
+  if (error) throw error
+}
+
+// ============================================================
+// 단가 이력 조회
+// ============================================================
+
+export type RateHistoryEntry = {
+  id: string
+  oldRate: number | null
+  newRate: number | null
+  effectiveDate: string
+  changedAt: string
+  changedBy: string
+}
+
+export async function getRateHistory(codeItemId: string): Promise<RateHistoryEntry[]> {
+  const { data, error } = await supabase
+    .from('rate_history')
+    .select('*')
+    .eq('code_item_id', codeItemId)
+    .order('effective_date', { ascending: false })
+
+  if (error) throw error
+  return (data ?? []).map((r: any) => ({
+    id: r.id,
+    oldRate: r.old_rate != null ? Number(r.old_rate) : null,
+    newRate: r.new_rate != null ? Number(r.new_rate) : null,
+    effectiveDate: r.effective_date,
+    changedAt: r.changed_at,
+    changedBy: r.changed_by,
+  }))
+}

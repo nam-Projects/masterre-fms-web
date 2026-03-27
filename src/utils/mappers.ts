@@ -148,6 +148,8 @@ export function dbRowToJob(
     photos: DbPhotoRow[]
     documents: DbDocumentRow[]
     areaCalculations: DbAreaCalcRow[]
+    hasFloorPlan?: boolean
+    hasEstimate?: boolean
   },
 ): Job {
   return {
@@ -177,6 +179,8 @@ export function dbRowToJob(
     estimateAmount: Number(row.estimate_amount) || 0,
     depositAmount: Number(row.deposit_amount) || 0,
     depositDate: row.deposit_date,
+    hasFloorPlan: relations.hasFloorPlan ?? false,
+    hasEstimate: relations.hasEstimate ?? false,
   }
 }
 

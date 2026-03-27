@@ -6,6 +6,9 @@ import {
   createCodeItem,
   updateCodeItem,
   deleteCodeItem,
+  updateRate,
+  getRateHistory,
+  type RateHistoryEntry,
 } from '../../services/codeService'
 
 const CODE_TYPES: CodeType[] = ['area', 'area_room', 'labor', 'material']
@@ -97,12 +100,26 @@ function TreeNode({
   const [editing, setEditing] = useState(false)
   const [editName, setEditName] = useState(node.name)
   const [editRate, setEditRate] = useState<number | null>(node.rate)
+  const [editEffDate, setEditEffDate] = useState(new Date().toISOString().slice(0, 10))
+  const [showHistory, setShowHistory] = useState(false)
+  const [history, setHistory] = useState<RateHistoryEntry[]>([])
+  const [historyLoading, setHistoryLoading] = useState(false)
   const hasChildren = node.children && node.children.length > 0
   const isLeaf = !hasChildren
+  const isRateNode = (codeType === 'labor' || codeType === 'material') && isLeaf
 
   const handleSave = async () => {
-    const updates: { name: string; rate: number | null } = { name: editName, rate: editRate }
-    await updateCodeItem(node.id, updates)
+    // 단가가 변경된 경우 이력 기록
+    if (isRateNode && editRate !== node.rate) {
+      await updateRate(node.id, node.rate, editRate, editEffDate, '')
+      // 이름도 변경된 경우
+      if (editName !== node.name) {
+        await updateCodeItem(node.id, { name: editName })
+      }
+    } else {
+      const updates: { name: string; rate: number | null } = { name: editName, rate: editRate }
+      await updateCodeItem(node.id, updates)
+    }
     setEditing(false)
     onReload()
   }
@@ -129,6 +146,21 @@ function TreeNode({
     onReload()
   }
 
+  const handleToggleHistory = async () => {
+    if (showHistory) {
+      setShowHistory(false)
+      return
+    }
+    setHistoryLoading(true)
+    try {
+      setHistory(await getRateHistory(node.id))
+    } catch (e) {
+      console.error(e)
+    }
+    setHistoryLoading(false)
+    setShowHistory(true)
+  }
+
   return (
     <div className="tree-node" style={{ '--depth': depth } as React.CSSProperties}>
       <div className="tree-node-row">
@@ -152,14 +184,25 @@ function TreeNode({
                 onChange={e => setEditName(e.target.value)}
                 autoFocus
               />
-              {(codeType === 'labor' || codeType === 'material') && isLeaf && (
-                <input
-                  className="tree-edit-input tree-edit-rate"
-                  type="number"
-                  placeholder="단가"
-                  value={editRate ?? ''}
-                  onChange={e => setEditRate(e.target.value ? Number(e.target.value) : null)}
-                />
+              {isRateNode && (
+                <>
+                  <input
+                    className="tree-edit-input tree-edit-rate"
+                    type="number"
+                    placeholder="단가"
+                    value={editRate ?? ''}
+                    onChange={e => setEditRate(e.target.value ? Number(e.target.value) : null)}
+                  />
+                  {editRate !== node.rate && (
+                    <input
+                      className="tree-edit-input tree-edit-date"
+                      type="date"
+                      value={editEffDate}
+                      onChange={e => setEditEffDate(e.target.value)}
+                      title="적용일"
+                    />
+                  )}
+                </>
               )}
               <button className="btn-code-save" onClick={handleSave}>저장</button>
               <button className="btn-code-cancel" onClick={() => setEditing(false)}>취소</button>
@@ -175,12 +218,53 @@ function TreeNode({
 
         {!editing && (
           <div className="tree-node-actions">
+            {isRateNode && node.rate != null && (
+              <button
+                className={`btn-tree-action ${showHistory ? 'active' : ''}`}
+                onClick={handleToggleHistory}
+                title="단가 이력"
+              >
+                이력
+              </button>
+            )}
             <button className="btn-tree-action" onClick={handleAddChild} title="하위 항목 추가">+</button>
-            <button className="btn-tree-action" onClick={() => { setEditing(true); setEditName(node.name); setEditRate(node.rate) }} title="수정">수정</button>
+            <button className="btn-tree-action" onClick={() => { setEditing(true); setEditName(node.name); setEditRate(node.rate); setEditEffDate(new Date().toISOString().slice(0, 10)) }} title="수정">수정</button>
             <button className="btn-tree-action delete" onClick={handleDelete} title="삭제">삭제</button>
           </div>
         )}
       </div>
+
+      {/* 단가 이력 */}
+      {showHistory && (
+        <div className="rate-history-panel">
+          {historyLoading ? (
+            <div className="rate-history-empty">로딩 중...</div>
+          ) : history.length === 0 ? (
+            <div className="rate-history-empty">변경 이력이 없습니다.</div>
+          ) : (
+            <table className="rate-history-table">
+              <thead>
+                <tr>
+                  <th>적용일</th>
+                  <th>변경 전</th>
+                  <th>변경 후</th>
+                  <th>변경일시</th>
+                </tr>
+              </thead>
+              <tbody>
+                {history.map(h => (
+                  <tr key={h.id}>
+                    <td>{h.effectiveDate}</td>
+                    <td className="rate-old">{h.oldRate?.toLocaleString() ?? '-'}</td>
+                    <td className="rate-new">{h.newRate?.toLocaleString() ?? '-'}</td>
+                    <td className="rate-date">{h.changedAt.slice(0, 10)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      )}
 
       {expanded && hasChildren && (
         <div className="tree-children">

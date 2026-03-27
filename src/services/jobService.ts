@@ -37,7 +37,7 @@ export async function listJobs(stageFilter?: Stage | null): Promise<Job[]> {
 // ============================================================
 
 export async function getJobWithRelations(id: string): Promise<Job> {
-  const [jobRes, victimsRes, commentsRes, photosRes, docsRes, areasRes] =
+  const [jobRes, victimsRes, commentsRes, photosRes, docsRes, areasRes, floorPlanRes, estimateRes] =
     await Promise.all([
       supabase.from('jobs').select('*').eq('id', id).single(),
       supabase.from('victims').select('*').eq('job_id', id).order('sort_order'),
@@ -45,6 +45,8 @@ export async function getJobWithRelations(id: string): Promise<Job> {
       supabase.from('photos').select('*').eq('job_id', id).order('uploaded_at'),
       supabase.from('documents').select('*').eq('job_id', id).order('uploaded_at'),
       supabase.from('area_calculations').select('*').eq('job_id', id).order('sort_order'),
+      supabase.from('floor_plan_data').select('id').eq('job_id', id).maybeSingle(),
+      supabase.from('estimates').select('id').eq('job_id', id).maybeSingle(),
     ])
 
   if (jobRes.error) throw jobRes.error
@@ -55,6 +57,8 @@ export async function getJobWithRelations(id: string): Promise<Job> {
     photos: (photosRes.data ?? []) as DbPhotoRow[],
     documents: (docsRes.data ?? []) as DbDocumentRow[],
     areaCalculations: (areasRes.data ?? []) as DbAreaCalcRow[],
+    hasFloorPlan: !!floorPlanRes.data,
+    hasEstimate: !!estimateRes.data,
   })
 }
 
