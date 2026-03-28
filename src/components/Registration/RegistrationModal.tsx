@@ -13,7 +13,7 @@ type Props = {
 const emptyVictim = (): Victim => ({ name: '', phone: '' })
 
 export default function RegistrationModal({ open, onClose }: Props) {
-  const { user } = useAuth()
+  const { user, organization } = useAuth()
   const [receivedDate, setReceivedDate] = useState(
     new Date().toISOString().slice(0, 10)
   )
@@ -90,6 +90,7 @@ export default function RegistrationModal({ open, onClose }: Props) {
           insuredPhone,
           address,
           notes,
+          orgId: organization?.id,
           createdBy: user?.id,
         },
         victims.filter((v) => v.name.trim()),

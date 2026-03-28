@@ -5,9 +5,10 @@ import { useStageCounts } from '../../hooks/useStageCounts'
 
 type Props = {
   onRegisterClick: () => void
+  canEdit?: boolean
 }
 
-export default function Sidebar({ onRegisterClick }: Props) {
+export default function Sidebar({ onRegisterClick, canEdit = true }: Props) {
   const { counts } = useStageCounts()
   const navigate = useNavigate()
   const location = useLocation()
@@ -25,10 +26,12 @@ export default function Sidebar({ onRegisterClick }: Props) {
 
   return (
     <aside className="sidebar">
-      <button className="btn-register" onClick={onRegisterClick}>
-        <span className="btn-register-icon">+</span>
-        현장등록
-      </button>
+      {canEdit && (
+        <button className="btn-register" onClick={onRegisterClick}>
+          <span className="btn-register-icon">+</span>
+          현장등록
+        </button>
+      )}
 
       <div className="sidebar-divider" />
 
@@ -76,6 +79,20 @@ export default function Sidebar({ onRegisterClick }: Props) {
         >
           <span className="filter-dot" style={{ background: '#5C6BC0' }} />
           <span className="filter-label">단계 매뉴얼</span>
+        </button>
+        <button
+          className={`sidebar-filter ${location.pathname === '/settings/members' ? 'active' : ''}`}
+          onClick={() => navigate('/settings/members')}
+        >
+          <span className="filter-dot" style={{ background: '#7E57C2' }} />
+          <span className="filter-label">직원 관리</span>
+        </button>
+        <button
+          className={`sidebar-filter ${location.pathname === '/settings/profile' ? 'active' : ''}`}
+          onClick={() => navigate('/settings/profile')}
+        >
+          <span className="filter-dot" style={{ background: '#26A69A' }} />
+          <span className="filter-label">회사 정보</span>
         </button>
       </nav>
 

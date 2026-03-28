@@ -24,9 +24,11 @@ const DEFAULT_COLOR = COLORS[0]
 type Props = {
   jobId: string
   onClose: () => void
+  onSaved?: () => void
+  canEdit?: boolean
 }
 
-export default function FloorPlanEditor({ jobId, onClose }: Props) {
+export default function FloorPlanEditor({ jobId, onClose, onSaved, canEdit = true }: Props) {
   const [floorPlan, setFloorPlan] = useState<FloorPlanData | null>(null)
   const [imageUrl, setImageUrl] = useState('')
   const [annotations, setAnnotations] = useState<AnnotationShape[]>([])
@@ -92,6 +94,7 @@ export default function FloorPlanEditor({ jobId, onClose }: Props) {
       setAnnotations(fp.annotations)
       const url = await getFloorPlanImageUrl(fp.imageStoragePath)
       setImageUrl(url)
+      onSaved?.()
     } catch (err) {
       alert(err instanceof Error ? err.message : '업로드 실패')
     } finally {
@@ -316,7 +319,7 @@ export default function FloorPlanEditor({ jobId, onClose }: Props) {
     try {
       await saveAnnotations(floorPlan.id, annotations)
       setFloorPlan({ ...floorPlan, annotations })
-      onClose()
+      onSaved ? onSaved() : onClose()
     } catch (err) {
       alert(err instanceof Error ? err.message : '저장 실패')
     } finally {
@@ -353,24 +356,28 @@ export default function FloorPlanEditor({ jobId, onClose }: Props) {
             {floorPlan && (
               <span className="fp-filename">{floorPlan.imageName}</span>
             )}
-            <button
-              className="btn-secondary"
-              onClick={() => fileInputRef.current?.click()}
-            >
-              {floorPlan ? '이미지 변경' : '이미지 업로드'}
-            </button>
-            {floorPlan && (
-              <button className="btn-danger-sm" onClick={handleDeleteImage}>
-                삭제
-              </button>
+            {canEdit && (
+              <>
+                <button
+                  className="btn-secondary"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  {floorPlan ? '이미지 변경' : '이미지 업로드'}
+                </button>
+                {floorPlan && (
+                  <button className="btn-danger-sm" onClick={handleDeleteImage}>
+                    삭제
+                  </button>
+                )}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  style={{ display: 'none' }}
+                  onChange={handleImageUpload}
+                />
+              </>
             )}
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              style={{ display: 'none' }}
-              onChange={handleImageUpload}
-            />
             <button className="btn-close-modal" onClick={onClose}>
               ✕
             </button>
@@ -378,7 +385,7 @@ export default function FloorPlanEditor({ jobId, onClose }: Props) {
         </div>
 
         {/* 도구 모음 */}
-        {floorPlan && imageUrl && (
+        {canEdit && floorPlan && imageUrl && (
           <div className="fp-toolbar">
             <div className="fp-tool-group">
               {(['select', 'circle', 'rect', 'callout'] as Tool[]).map(t => (
@@ -471,7 +478,7 @@ export default function FloorPlanEditor({ jobId, onClose }: Props) {
           <button className="btn-secondary" onClick={onClose}>
             닫기
           </button>
-          {floorPlan && (
+          {canEdit && floorPlan && (
             <button
               className="btn-primary"
               onClick={handleSave}

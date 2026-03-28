@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { NavLink } from 'react-router-dom'
+import { NavLink, useNavigate } from 'react-router-dom'
 import { Outlet } from 'react-router-dom'
 import Sidebar from './Sidebar'
 import RegistrationModal from '../Registration/RegistrationModal'
@@ -7,7 +7,9 @@ import { useAuth } from '../../contexts/AuthContext'
 
 export default function Layout() {
   const [modalOpen, setModalOpen] = useState(false)
-  const { profile, signOut } = useAuth()
+  const navigate = useNavigate()
+  const { profile, orgRole, isSuper, signOut } = useAuth()
+  const canEdit = isSuper || orgRole === 'owner' || orgRole === 'manager'
 
   return (
     <div className="layout">
@@ -20,24 +22,32 @@ export default function Layout() {
           </div>
         </NavLink>
         <div className="gnb-right">
-          <span className="gnb-user-name">{profile?.displayName || '사용자'}</span>
-          <button className="btn-logout" onClick={signOut}>
-            로그아웃
+          <span className="gnb-user-name clickable" onClick={() => navigate('/settings/me')}>
+            {profile?.displayName || '사용자'}
+          </span>
+          <button className="btn-logout" onClick={signOut} title="로그아웃">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
           </button>
         </div>
       </header>
 
       <div className="layout-body">
-        <Sidebar onRegisterClick={() => setModalOpen(true)} />
+        <Sidebar onRegisterClick={() => setModalOpen(true)} canEdit={canEdit} />
         <main className="main-content">
           <Outlet />
         </main>
       </div>
 
-      <RegistrationModal
-        open={modalOpen}
-        onClose={() => setModalOpen(false)}
-      />
+      {canEdit && (
+        <RegistrationModal
+          open={modalOpen}
+          onClose={() => setModalOpen(false)}
+        />
+      )}
     </div>
   )
 }

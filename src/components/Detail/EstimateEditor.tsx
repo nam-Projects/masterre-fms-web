@@ -4,18 +4,15 @@ import type { CodeItem, EstimateItem, EstimateItemType, BizProfile } from '../..
 import { ITEM_TYPE_LABELS } from '../../types'
 import { useAuth } from '../../contexts/AuthContext'
 import { listCodeTree } from '../../services/codeService'
-import {
-  getEstimate,
-  saveEstimate,
-  getBizProfile,
-  updateBizProfile,
-} from '../../services/estimateService'
+import { getEstimate, saveEstimate } from '../../services/estimateService'
+import { getOrganization, updateOrganization } from '../../services/orgService'
 
 type Props = {
   jobId: string
   address: string
   onClose: () => void
   onSaved: () => void
+  canEdit?: boolean
 }
 
 // 섹션 내 아이템 (편집용)
@@ -39,8 +36,8 @@ function newKey() {
   return crypto.randomUUID()
 }
 
-export default function EstimateEditor({ jobId, address, onClose, onSaved }: Props) {
-  const { user } = useAuth()
+export default function EstimateEditor({ jobId, address, onClose, onSaved, canEdit = true }: Props) {
+  const { organization } = useAuth()
   const [sections, setSections] = useState<Section[]>([])
   const [addressLabel, setAddressLabel] = useState(address + ' 피해세대')
   const [estimateDate, setEstimateDate] = useState(new Date().toISOString().slice(0, 10))
@@ -76,11 +73,17 @@ export default function EstimateEditor({ jobId, address, onClose, onSaved }: Pro
         listCodeTree('labor'),
         listCodeTree('material'),
         getEstimate(jobId),
-        user ? getBizProfile(user.id) : Promise.resolve(null),
+        organization ? getOrganization(organization.id) : Promise.resolve(null),
       ])
       setLaborTree(lt)
       setMaterialTree(mt)
-      if (bizData) setBiz(bizData)
+      if (bizData) setBiz({
+        bizRegistrationNo: bizData.bizRegistrationNo,
+        bizName: bizData.bizName,
+        bizCeo: bizData.bizCeo,
+        bizAddress: bizData.bizAddress,
+        bizPhone: bizData.bizPhone,
+      })
 
       if (est) {
         setAddressLabel(est.addressLabel)
@@ -145,7 +148,7 @@ export default function EstimateEditor({ jobId, address, onClose, onSaved }: Pro
         }],
       }
     }))
-    setPickerTarget(null)
+    setPickerSectionIdx(null)
   }
 
   // 수동 항목 추가
@@ -204,7 +207,7 @@ export default function EstimateEditor({ jobId, address, onClose, onSaved }: Pro
     setSaving(true)
     try {
       // 사업자 정보 저장
-      if (user) await updateBizProfile(user.id, biz)
+      if (organization) await updateOrganization(organization.id, biz)
 
       let sortOrder = 0
       const items: Omit<EstimateItem, 'id'>[] = sections.flatMap(s =>
@@ -264,7 +267,7 @@ export default function EstimateEditor({ jobId, address, onClose, onSaved }: Pro
         <div className="est-header">
           <h3>견적서</h3>
           <div className="est-header-actions">
-            <button className="btn-primary" onClick={addSection}>+ 섹션 추가</button>
+            {canEdit && <button className="btn-primary" onClick={addSection}>+ 섹션 추가</button>}
             <button className="btn-close-modal" onClick={onClose}>✕</button>
           </div>
         </div>
@@ -318,9 +321,6 @@ export default function EstimateEditor({ jobId, address, onClose, onSaved }: Pro
                     </td></tr>
                   </tbody>
                 </table>
-                <button className="btn-tiny est-biz-toggle" onClick={() => setEditingBiz(!editingBiz)}>
-                  {editingBiz ? '완료' : '사업자정보 수정'}
-                </button>
               </div>
             </div>
 
@@ -441,9 +441,11 @@ export default function EstimateEditor({ jobId, address, onClose, onSaved }: Pro
           </button>
           <div className="est-footer-right">
             <button className="btn-secondary" onClick={onClose}>닫기</button>
-            <button className="btn-primary" onClick={handleSave} disabled={saving || sections.length === 0}>
-              {saving ? '저장 중...' : '저장'}
-            </button>
+            {canEdit && (
+              <button className="btn-primary" onClick={handleSave} disabled={saving || sections.length === 0}>
+                {saving ? '저장 중...' : '저장'}
+              </button>
+            )}
           </div>
         </div>
       </div>

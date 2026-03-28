@@ -16,6 +16,7 @@ type Props = {
   existing: AreaEntry[]
   onClose: () => void
   onSaved: () => void
+  canEdit?: boolean
 }
 
 type Row = {
@@ -92,7 +93,7 @@ function FixedDropdown({
   )
 }
 
-export default function AreaCalcEditor({ jobId, jobInfo, existing, onClose, onSaved }: Props) {
+export default function AreaCalcEditor({ jobId, jobInfo, existing, onClose, onSaved, canEdit = true }: Props) {
   const [templates, setTemplates] = useState<CodeItem[]>([])
   const [roomTree, setRoomTree] = useState<CodeItem[]>([])
   const [blocks, setBlocks] = useState<Block[]>([])
@@ -250,7 +251,7 @@ export default function AreaCalcEditor({ jobId, jobInfo, existing, onClose, onSa
         <div className="area-calc-header">
           <h3>피해복구면적산출표</h3>
           <div className="area-calc-header-actions">
-            <div className="area-calc-picker-wrap">
+            {canEdit && <div className="area-calc-picker-wrap">
               <button
                 className="btn-primary"
                 onClick={() => setShowPicker(!showPicker)}
@@ -264,7 +265,7 @@ export default function AreaCalcEditor({ jobId, jobInfo, existing, onClose, onSa
                   onSelect={addBlock}
                 />
               )}
-            </div>
+            </div>}
             <button className="btn-close-modal" onClick={onClose}>
               ✕
             </button>
@@ -326,6 +327,7 @@ export default function AreaCalcEditor({ jobId, jobInfo, existing, onClose, onSa
                 onAddWorkType={addWorkType}
                 onRemoveRow={removeRow}
                 onRemove={() => removeBlock(bi)}
+                canEdit={canEdit}
               />
             ))
           )}
@@ -342,13 +344,15 @@ export default function AreaCalcEditor({ jobId, jobInfo, existing, onClose, onSa
           </button>
           <div className="area-calc-footer-right">
             <button className="btn-secondary" onClick={onClose}>닫기</button>
-            <button
-              className="btn-primary"
-              onClick={handleSave}
-              disabled={saving || blocks.length === 0}
-            >
-              {saving ? '저장 중...' : '저장'}
-            </button>
+            {canEdit && (
+              <button
+                className="btn-primary"
+                onClick={handleSave}
+                disabled={saving || blocks.length === 0}
+              >
+                {saving ? '저장 중...' : '저장'}
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -401,6 +405,7 @@ function BlockTable({
   onAddWorkType,
   onRemoveRow,
   onRemove,
+  canEdit = true,
 }: {
   block: Block
   blockIdx: number
@@ -410,6 +415,7 @@ function BlockTable({
   onAddWorkType: (bi: number, scopeName: string, workTypeName: string) => void
   onRemoveRow: (bi: number, ri: number) => void
   onRemove: () => void
+  canEdit?: boolean
 }) {
   const [showScopePicker, setShowScopePicker] = useState(false)
   const [showWorkTypePicker, setShowWorkTypePicker] = useState<string | null>(null)
@@ -447,34 +453,36 @@ function BlockTable({
     <div className="area-block">
       <div className="area-block-header">
         <span className="area-block-title">{block.room}</span>
-        <div className="area-block-actions">
-          <button
-            ref={scopeBtnRef}
-            className="btn-tiny btn-add-scope"
-            onClick={() => { setShowScopePicker(!showScopePicker); setShowWorkTypePicker(null) }}
-            disabled={availableScopes.length === 0}
-          >
-            + 구분 추가
-          </button>
-          {showScopePicker && (
-            <FixedDropdown anchorRef={scopeBtnRef} onClose={() => setShowScopePicker(false)}>
-              {availableScopes.map(scope => (
-                <button
-                  key={scope.id}
-                  className="area-calc-picker-item"
-                  onClick={() => {
-                    const firstWt = scope.children?.[0]?.name ?? scope.name
-                    onAddScope(blockIdx, scope.name, firstWt)
-                    setShowScopePicker(false)
-                  }}
-                >
-                  {scope.name}
-                </button>
-              ))}
-            </FixedDropdown>
-          )}
-          <button className="btn-tiny" onClick={onRemove}>삭제</button>
-        </div>
+        {canEdit && (
+          <div className="area-block-actions">
+            <button
+              ref={scopeBtnRef}
+              className="btn-tiny btn-add-scope"
+              onClick={() => { setShowScopePicker(!showScopePicker); setShowWorkTypePicker(null) }}
+              disabled={availableScopes.length === 0}
+            >
+              + 구분 추가
+            </button>
+            {showScopePicker && (
+              <FixedDropdown anchorRef={scopeBtnRef} onClose={() => setShowScopePicker(false)}>
+                {availableScopes.map(scope => (
+                  <button
+                    key={scope.id}
+                    className="area-calc-picker-item"
+                    onClick={() => {
+                      const firstWt = scope.children?.[0]?.name ?? scope.name
+                      onAddScope(blockIdx, scope.name, firstWt)
+                      setShowScopePicker(false)
+                    }}
+                  >
+                    {scope.name}
+                  </button>
+                ))}
+              </FixedDropdown>
+            )}
+            <button className="btn-tiny" onClick={onRemove}>삭제</button>
+          </div>
+        )}
       </div>
 
       {block.rows.length === 0 ? (
@@ -577,13 +585,15 @@ function BlockTable({
                     {rArea > 0 ? rArea : ''}
                   </td>
                   <td className="area-row-action">
-                    <button
-                      className="btn-remove-row"
-                      onClick={() => onRemoveRow(blockIdx, ri)}
-                      title="행 삭제"
-                    >
-                      ×
-                    </button>
+                    {canEdit && (
+                      <button
+                        className="btn-remove-row"
+                        onClick={() => onRemoveRow(blockIdx, ri)}
+                        title="행 삭제"
+                      >
+                        ×
+                      </button>
+                    )}
                   </td>
                 </tr>
               )

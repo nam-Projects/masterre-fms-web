@@ -24,6 +24,7 @@ export type DbJobRow = {
   notes: string
   stage: string
   daily_checked: boolean
+  org_id: string | null
   created_by: string | null
   created_at: string
   updated_at: string
@@ -202,6 +203,7 @@ export function jobToInsertRow(data: {
   insuredPhone: string
   address: string
   notes: string
+  orgId?: string
   createdBy?: string
 }) {
   return {
@@ -218,6 +220,7 @@ export function jobToInsertRow(data: {
     insured_phone: data.insuredPhone,
     address: data.address,
     notes: data.notes,
+    org_id: data.orgId ?? null,
     created_by: data.createdBy ?? null,
   }
 }

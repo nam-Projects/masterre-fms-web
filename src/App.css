@@ -43,6 +43,16 @@
   color: rgba(255,255,255,0.8);
 }
 
+.gnb-user-name.clickable {
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.gnb-user-name.clickable:hover {
+  color: #fff;
+  text-decoration: underline;
+}
+
 .layout-body {
   display: flex;
   margin-top: 56px;
@@ -1148,6 +1158,23 @@
   margin-top: 8px;
 }
 
+.remember-email {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: #555;
+  cursor: pointer;
+  margin-top: -4px;
+}
+
+.remember-email input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
 .login-error {
   color: #e53e3e;
   font-size: 0.85rem;
@@ -1237,13 +1264,12 @@
 
 .btn-logout {
   background: none;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  padding: 4px 10px;
-  font-size: 0.75rem;
+  border: none;
+  padding: 4px;
   color: #888;
   cursor: pointer;
-  white-space: nowrap;
+  display: flex;
+  align-items: center;
 }
 
 .btn-logout:hover {
@@ -1259,6 +1285,61 @@
   height: 120px;
   object-fit: cover;
   border-radius: 6px;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.photo-thumbnail:hover {
+  opacity: 0.8;
+}
+
+.photo-viewer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: 20px;
+}
+
+.photo-viewer {
+  position: relative;
+  max-width: 90vw;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.photo-viewer img {
+  max-width: 90vw;
+  max-height: 80vh;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.photo-viewer-close {
+  position: absolute;
+  top: -40px;
+  right: 0;
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 4px 8px;
+}
+
+.photo-viewer-close:hover {
+  color: #e53e3e;
+}
+
+.photo-viewer-name {
+  margin-top: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.85rem;
 }
 
 .photo-item-info {
@@ -1483,9 +1564,19 @@
 }
 
 .claiming-balance-value {
+  flex: 1;
+  text-align: right;
   font-size: 1.1rem;
   font-weight: 700;
   color: #e53935;
+}
+
+.claiming-row input.text-right {
+  text-align: right;
+}
+
+.claiming-row input.text-center {
+  text-align: center;
 }
 
 .claiming-balance-value.zero {
@@ -1503,6 +1594,238 @@
 /* ==============================
    코드관리 페이지
    ============================== */
+/* ==============================
+   PROFILE SETTINGS
+   ============================== */
+.profile-settings-form {
+  max-width: 480px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.profile-settings-form .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.profile-settings-form .form-group label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #555;
+}
+
+.profile-settings-form .form-group input {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+.profile-settings-form .form-group input:disabled {
+  background: #f5f5f5;
+  color: #999;
+}
+
+.settings-divider {
+  border-top: 1px solid #eee;
+  margin: 4px 0;
+}
+
+.profile-settings-form .btn-submit {
+  margin-top: 8px;
+}
+
+.settings-page {
+  max-width: 1100px;
+}
+
+.settings-page h2 {
+  margin: 0 0 20px;
+  font-size: 1.4rem;
+}
+
+/* ==============================
+   MEMBER LIST
+   ============================== */
+.member-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.member-header h2 {
+  margin: 0;
+  font-size: 1.4rem;
+}
+
+.member-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.member-table th,
+.member-table td {
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+}
+
+.member-table th {
+  font-weight: 600;
+  color: #555;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+}
+
+.member-table select {
+  padding: 4px 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
+
+.member-name {
+  font-weight: 600;
+}
+
+.member-me {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 8px;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.member-date {
+  color: #888;
+  font-size: 0.85rem;
+}
+
+.role-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.role-owner {
+  background: #FFF3E0;
+  color: #E65100;
+}
+
+.role-manager {
+  background: #E8F5E9;
+  color: #2E7D32;
+}
+
+.role-viewer {
+  background: #F5F5F5;
+  color: #757575;
+}
+
+.btn-danger {
+  color: #e53e3e;
+  border-color: #e53e3e;
+}
+
+.btn-danger:hover {
+  background: #fff5f5;
+}
+
+.invite-section-title {
+  margin: 28px 0 12px;
+  font-size: 1rem;
+  color: #555;
+}
+
+.invite-status {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.invite-status-pending {
+  background: #FFF8E1;
+  color: #F57F17;
+}
+
+.invite-status-accepted {
+  background: #E8F5E9;
+  color: #2E7D32;
+}
+
+/* ==============================
+   INVITE MODAL
+   ============================== */
+.modal-invite .form-group {
+  margin-bottom: 14px;
+}
+
+.modal-invite .form-group label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #555;
+  margin-bottom: 4px;
+}
+
+.modal-invite .form-group input,
+.modal-invite .form-group select {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  box-sizing: border-box;
+}
+
+.invite-result-desc {
+  font-size: 0.9rem;
+  color: #555;
+  margin-bottom: 12px;
+}
+
+.invite-link-box {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.invite-link-box input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  background: #f9f9f9;
+}
+
+.invite-result-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.invite-org-info {
+  text-align: center;
+  color: #555;
+  font-size: 0.9rem;
+  margin-bottom: 16px;
+  padding: 10px;
+  background: #f0f7ff;
+  border-radius: 8px;
+}
+
 .code-management {
   max-width: 1100px;
 }

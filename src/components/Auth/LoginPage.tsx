@@ -2,14 +2,24 @@ import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
+import { supabase } from '../../lib/supabase'
+import { formatBizNo, formatPhone } from '../../utils/format'
 
 export default function LoginPage() {
   const { signIn, signUp } = useAuth()
   const navigate = useNavigate()
   const [isSignUp, setIsSignUp] = useState(false)
-  const [email, setEmail] = useState('')
+  const savedEmail = localStorage.getItem('rememberedEmail')
+  const [email, setEmail] = useState(savedEmail || '')
+  const [rememberEmail, setRememberEmail] = useState(!!savedEmail)
   const [password, setPassword] = useState('')
-  const [displayName, setDisplayName] = useState('')
+  const [bizRegistrationNo, setBizRegistrationNo] = useState('')
+  const [bizName, setBizName] = useState('')
+  const [bizCeo, setBizCeo] = useState('')
+  const [bizAddress, setBizAddress] = useState('')
+  const [bizPhone, setBizPhone] = useState('')
+  const [bizMobile, setBizMobile] = useState('')
+  const [managerName, setManagerName] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
@@ -21,7 +31,26 @@ export default function LoginPage() {
     setLoading(true)
 
     if (isSignUp) {
-      const { error } = await signUp(email, password, displayName || email)
+      // 사업자등록번호 중복 체크
+      const { count } = await supabase
+        .from('organizations')
+        .select('id', { count: 'exact', head: true })
+        .eq('biz_registration_no', bizRegistrationNo)
+      if (count && count > 0) {
+        setError('이미 등록된 사업자등록번호입니다.')
+        setLoading(false)
+        return
+      }
+
+      const { error } = await signUp(email, password, {
+        bizRegistrationNo,
+        bizName,
+        bizCeo,
+        bizAddress,
+        bizPhone,
+        bizMobile,
+        managerName,
+      })
       if (error) {
         setError(error)
       } else {
@@ -33,6 +62,11 @@ export default function LoginPage() {
       if (error) {
         setError(error)
       } else {
+        if (rememberEmail) {
+          localStorage.setItem('rememberedEmail', email)
+        } else {
+          localStorage.removeItem('rememberedEmail')
+        }
         navigate('/', { replace: true })
       }
     }
@@ -53,18 +87,6 @@ export default function LoginPage() {
 
         <form onSubmit={handleSubmit} className="login-form">
           <h2>{isSignUp ? '회원가입' : '로그인'}</h2>
-
-          {isSignUp && (
-            <div className="form-group">
-              <label>이름</label>
-              <input
-                type="text"
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-                placeholder="표시 이름"
-              />
-            </div>
-          )}
 
           <div className="form-group">
             <label>이메일</label>
@@ -88,6 +110,94 @@ export default function LoginPage() {
               minLength={6}
             />
           </div>
+
+          {!isSignUp && (
+            <label className="remember-email">
+              <input
+                type="checkbox"
+                checked={rememberEmail}
+                onChange={(e) => setRememberEmail(e.target.checked)}
+              />
+              <span>ID 기억하기</span>
+            </label>
+          )}
+
+          {isSignUp && (
+            <>
+              <div className="form-group">
+                <label>사업자등록번호</label>
+                <input
+                  type="text"
+                  value={bizRegistrationNo}
+                  onChange={(e) => setBizRegistrationNo(formatBizNo(e.target.value))}
+                  placeholder="000-00-00000"
+                  maxLength={12}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label>상호</label>
+                <input
+                  type="text"
+                  value={bizName}
+                  onChange={(e) => setBizName(e.target.value)}
+                  placeholder="상호명"
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label>대표</label>
+                <input
+                  type="text"
+                  value={bizCeo}
+                  onChange={(e) => setBizCeo(e.target.value)}
+                  placeholder="대표자명"
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label>주소</label>
+                <input
+                  type="text"
+                  value={bizAddress}
+                  onChange={(e) => setBizAddress(e.target.value)}
+                  placeholder="사업장 주소"
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label>전화번호</label>
+                <input
+                  type="text"
+                  value={bizPhone}
+                  onChange={(e) => setBizPhone(formatPhone(e.target.value))}
+                  placeholder="02-0000-0000"
+                  maxLength={13}
+                />
+              </div>
+              <div className="form-group">
+                <label>휴대전화</label>
+                <input
+                  type="text"
+                  value={bizMobile}
+                  onChange={(e) => setBizMobile(formatPhone(e.target.value))}
+                  placeholder="010-0000-0000"
+                  maxLength={13}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label>담당자명</label>
+                <input
+                  type="text"
+                  value={managerName}
+                  onChange={(e) => setManagerName(e.target.value)}
+                  placeholder="담당자 이름"
+                  required
+                />
+              </div>
+            </>
+          )}
 
           {error && <div className="login-error">{error}</div>}
           {message && <div className="login-message">{message}</div>}

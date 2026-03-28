@@ -81,6 +81,7 @@ export async function createJob(
     insuredPhone: string
     address: string
     notes: string
+    orgId?: string
     createdBy?: string
   },
   victims: { name: string; phone: string }[],

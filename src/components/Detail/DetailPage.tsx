@@ -13,11 +13,14 @@ import PhotoUploader from './PhotoUploader'
 import AreaCalcEditor from './AreaCalcEditor'
 import FloorPlanEditor from './FloorPlanEditor'
 import EstimateEditor from './EstimateEditor'
+import DocImageModal from './DocImageModal'
 import { useState, useEffect, useRef } from 'react'
 import { useJob } from '../../hooks/useJob'
 import { updateStage, updateJobFinance } from '../../services/jobService'
 import { addComment } from '../../services/commentService'
 import { canAutoTransition } from '../../hooks/useStageValidation'
+import { useAuth } from '../../contexts/AuthContext'
+import { refreshStageCounts } from '../../hooks/useStageCounts'
 
 const PHOTO_FOLDERS: PhotoFolder[] = [
   'before',
@@ -30,11 +33,15 @@ const PHOTO_FOLDERS: PhotoFolder[] = [
 export default function DetailPage() {
   const { jobId } = useParams()
   const navigate = useNavigate()
+  const { orgRole, isSuper } = useAuth()
+  const canEdit = isSuper || orgRole === 'owner' || orgRole === 'manager'
   const { job, loading, error, refetch } = useJob(jobId)
   const [activePhotoTab, setActivePhotoTab] = useState<PhotoFolder>('before')
   const [showAreaCalc, setShowAreaCalc] = useState(false)
   const [showFloorPlan, setShowFloorPlan] = useState(false)
   const [showEstimate, setShowEstimate] = useState(false)
+  const [showInsuranceDocs, setShowInsuranceDocs] = useState(false)
+  const [showEtcDocs, setShowEtcDocs] = useState(false)
   const prevStageRef = useRef<Stage | null>(null)
 
   // 자동 단계 전환 감지
@@ -86,6 +93,7 @@ export default function DetailPage() {
     })
     prevStageRef.current = newStage
     refetch()
+    refreshStageCounts()
   }
 
   const handleFinanceUpdate = async (data: {
@@ -185,7 +193,7 @@ export default function DetailPage() {
 
       {/* 코멘트 */}
       <section className="detail-card">
-        <CommentBox comments={job.comments} onAdd={handleAddComment} />
+        <CommentBox comments={job.comments} onAdd={handleAddComment} canEdit={canEdit} />
       </section>
 
       {/* 현장사진 */}
@@ -211,6 +219,7 @@ export default function DetailPage() {
           folder={activePhotoTab}
           photos={photosInFolder}
           onRefresh={refetch}
+          canEdit={canEdit}
         />
       </section>
 
@@ -233,13 +242,23 @@ export default function DetailPage() {
             <span className="doc-btn-label">C</span>
             <span>견적서</span>
           </button>
-          <button className="doc-btn disabled">
+          <button className="doc-btn" onClick={() => setShowInsuranceDocs(true)}>
             <span className="doc-btn-label">D</span>
             <span>보험금청구서 및 개인정보 서류</span>
+            {job.photos.filter((p) => p.folder === 'insurance_docs').length > 0 && (
+              <span className="doc-btn-badge">
+                {job.photos.filter((p) => p.folder === 'insurance_docs').length}
+              </span>
+            )}
           </button>
-          <button className="doc-btn disabled">
+          <button className="doc-btn" onClick={() => setShowEtcDocs(true)}>
             <span className="doc-btn-label">E</span>
             <span>기타</span>
+            {job.photos.filter((p) => p.folder === 'etc').length > 0 && (
+              <span className="doc-btn-badge">
+                {job.photos.filter((p) => p.folder === 'etc').length}
+              </span>
+            )}
           </button>
         </div>
       </section>
@@ -250,6 +269,7 @@ export default function DetailPage() {
           job={job}
           onStageChange={handleStageChange}
           onFinanceUpdate={handleFinanceUpdate}
+          canEdit={canEdit}
         />
       </section>
 
@@ -262,6 +282,7 @@ export default function DetailPage() {
             setShowEstimate(false)
             refetch()
           }}
+          canEdit={canEdit}
         />
       )}
 
@@ -269,6 +290,33 @@ export default function DetailPage() {
         <FloorPlanEditor
           jobId={jobId!}
           onClose={() => setShowFloorPlan(false)}
+          onSaved={() => {
+            setShowFloorPlan(false)
+            refetch()
+          }}
+          canEdit={canEdit}
+        />
+      )}
+
+      {showInsuranceDocs && (
+        <DocImageModal
+          jobId={jobId!}
+          folder="insurance_docs"
+          photos={job.photos.filter((p) => p.folder === 'insurance_docs')}
+          onRefresh={refetch}
+          onClose={() => setShowInsuranceDocs(false)}
+          canEdit={canEdit}
+        />
+      )}
+
+      {showEtcDocs && (
+        <DocImageModal
+          jobId={jobId!}
+          folder="etc"
+          photos={job.photos.filter((p) => p.folder === 'etc')}
+          onRefresh={refetch}
+          onClose={() => setShowEtcDocs(false)}
+          canEdit={canEdit}
         />
       )}
 
@@ -286,6 +334,7 @@ export default function DetailPage() {
             setShowAreaCalc(false)
             refetch()
           }}
+          canEdit={canEdit}
         />
       )}
     </div>

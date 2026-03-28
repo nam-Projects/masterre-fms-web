@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import type { CodeItem, CodeType } from '../../types'
 import { CODE_TYPE_LABELS } from '../../types'
+import { useAuth } from '../../contexts/AuthContext'
 import {
   listCodeTree,
   createCodeItem,
@@ -14,6 +15,8 @@ import {
 const CODE_TYPES: CodeType[] = ['area', 'area_room', 'labor', 'material']
 
 export default function CodeManagement() {
+  const { orgRole, isSuper } = useAuth()
+  const canEdit = isSuper || orgRole === 'owner' || orgRole === 'manager'
   const [tab, setTab] = useState<CodeType>('area')
   const [tree, setTree] = useState<CodeItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -51,17 +54,19 @@ export default function CodeManagement() {
           <div className="code-tree-wrap">
             <div className="code-tree-header">
               <span className="code-table-title">{CODE_TYPE_LABELS[tab]}</span>
-              <button
-                className="btn-code-add"
-                onClick={async () => {
-                  const name = prompt('최상위 항목 이름을 입력하세요')
-                  if (!name) return
-                  await createCodeItem({ codeType: tab, parentId: null, name, sortOrder: tree.length + 1 })
-                  load()
-                }}
-              >
-                + 최상위 항목 추가
-              </button>
+              {canEdit && (
+                <button
+                  className="btn-code-add"
+                  onClick={async () => {
+                    const name = prompt('최상위 항목 이름을 입력하세요')
+                    if (!name) return
+                    await createCodeItem({ codeType: tab, parentId: null, name, sortOrder: tree.length + 1 })
+                    load()
+                  }}
+                >
+                  + 최상위 항목 추가
+                </button>
+              )}
             </div>
             {tree.length === 0 ? (
               <div className="code-empty">등록된 항목이 없습니다.</div>
@@ -74,6 +79,7 @@ export default function CodeManagement() {
                     codeType={tab}
                     depth={0}
                     onReload={load}
+                    canEdit={canEdit}
                   />
                 ))}
               </div>
@@ -90,11 +96,13 @@ function TreeNode({
   codeType,
   depth,
   onReload,
+  canEdit,
 }: {
   node: CodeItem
   codeType: CodeType
   depth: number
   onReload: () => void
+  canEdit: boolean
 }) {
   const [expanded, setExpanded] = useState(depth < 2)
   const [editing, setEditing] = useState(false)
@@ -227,9 +235,13 @@ function TreeNode({
                 이력
               </button>
             )}
-            <button className="btn-tree-action" onClick={handleAddChild} title="하위 항목 추가">+</button>
-            <button className="btn-tree-action" onClick={() => { setEditing(true); setEditName(node.name); setEditRate(node.rate); setEditEffDate(new Date().toISOString().slice(0, 10)) }} title="수정">수정</button>
-            <button className="btn-tree-action delete" onClick={handleDelete} title="삭제">삭제</button>
+            {canEdit && (
+              <>
+                <button className="btn-tree-action" onClick={handleAddChild} title="하위 항목 추가">+</button>
+                <button className="btn-tree-action" onClick={() => { setEditing(true); setEditName(node.name); setEditRate(node.rate); setEditEffDate(new Date().toISOString().slice(0, 10)) }} title="수정">수정</button>
+                <button className="btn-tree-action delete" onClick={handleDelete} title="삭제">삭제</button>
+              </>
+            )}
           </div>
         )}
       </div>
@@ -275,6 +287,7 @@ function TreeNode({
               codeType={codeType}
               depth={depth + 1}
               onReload={onReload}
+              canEdit={canEdit}
             />
           ))}
         </div>

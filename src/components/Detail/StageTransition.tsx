@@ -1,15 +1,17 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { STAGES, STAGE_LABELS, STAGE_COLORS } from '../../types'
 import type { Stage, Job } from '../../types'
 import { getStageConditions, canManualTransition } from '../../hooks/useStageValidation'
+import { getEstimate } from '../../services/estimateService'
 
 type Props = {
   job: Job
   onStageChange: (newStage: Stage) => Promise<void>
   onFinanceUpdate?: (data: { estimateAmount?: number; depositAmount?: number; depositDate?: string | null }) => Promise<void>
+  canEdit?: boolean
 }
 
-export default function StageTransition({ job, onStageChange, onFinanceUpdate }: Props) {
+export default function StageTransition({ job, onStageChange, onFinanceUpdate, canEdit = true }: Props) {
   const currentIndex = STAGES.indexOf(job.stage)
   const conditions = getStageConditions(job)
 
@@ -17,7 +19,7 @@ export default function StageTransition({ job, onStageChange, onFinanceUpdate }:
     <div className="stage-transition">
       <div className="stage-transition-header">
         <h3>단계 진행</h3>
-        {currentIndex > 0 && (
+        {canEdit && currentIndex > 0 && (
           <button
             className="btn-stage-revert"
             onClick={() => onStageChange(STAGES[currentIndex - 1])}
@@ -64,11 +66,13 @@ export default function StageTransition({ job, onStageChange, onFinanceUpdate }:
         </div>
       )}
 
-      <StageActions
-        job={job}
-        onStageChange={onStageChange}
-        onFinanceUpdate={onFinanceUpdate}
-      />
+      {canEdit && (
+        <StageActions
+          job={job}
+          onStageChange={onStageChange}
+          onFinanceUpdate={onFinanceUpdate}
+        />
+      )}
     </div>
   )
 }
@@ -182,6 +186,19 @@ function ClaimingActions({
   const [depositDate, setDepositDate] = useState(job.depositDate || '')
   const [saving, setSaving] = useState(false)
 
+  // 견적금액이 아직 0이면 견적서에서 합계를 가져와 초기값 세팅
+  useEffect(() => {
+    if (job.estimateAmount > 0) return
+    getEstimate(job.id).then(est => {
+      if (!est || est.items.length === 0) return
+      const subtotal = est.items.reduce((sum, item) => sum + Math.round(item.quantity * item.unitPrice), 0)
+      const mgmtAmount = Math.round(subtotal * est.mgmtRate / 100)
+      const profitAmount = Math.round(subtotal * est.profitRate / 100)
+      const total = est.roundingTarget > 0 ? est.roundingTarget : subtotal + mgmtAmount + profitAmount
+      if (total > 0) setEstimateAmount(total)
+    }).catch(() => {})
+  }, [job.id, job.estimateAmount])
+
   const balance = estimateAmount - depositAmount
 
   const handleSave = async () => {
@@ -207,9 +224,11 @@ function ClaimingActions({
       <div className="claiming-row">
         <label>견적금액</label>
         <input
-          type="number"
-          value={estimateAmount || ''}
-          onChange={e => setEstimateAmount(Number(e.target.value))}
+          type="text"
+          inputMode="numeric"
+          className="text-right"
+          value={estimateAmount ? estimateAmount.toLocaleString() : ''}
+          onChange={e => setEstimateAmount(Number(e.target.value.replace(/,/g, '')) || 0)}
           placeholder="0"
         />
         <span className="claiming-unit">원</span>
@@ -217,9 +236,11 @@ function ClaimingActions({
       <div className="claiming-row">
         <label>입금액</label>
         <input
-          type="number"
-          value={depositAmount || ''}
-          onChange={e => setDepositAmount(Number(e.target.value))}
+          type="text"
+          inputMode="numeric"
+          className="text-right"
+          value={depositAmount ? depositAmount.toLocaleString() : ''}
+          onChange={e => setDepositAmount(Number(e.target.value.replace(/,/g, '')) || 0)}
           placeholder="0"
         />
         <span className="claiming-unit">원</span>
@@ -228,6 +249,7 @@ function ClaimingActions({
         <label>입금일자</label>
         <input
           type="date"
+          className="text-center"
           value={depositDate}
           onChange={e => setDepositDate(e.target.value)}
         />
@@ -235,8 +257,9 @@ function ClaimingActions({
       <div className="claiming-row claiming-balance">
         <label>잔액</label>
         <span className={`claiming-balance-value ${balance === 0 && estimateAmount > 0 ? 'zero' : ''}`}>
-          {balance.toLocaleString()}원
+          {balance.toLocaleString()}
         </span>
+        <span className="claiming-unit">원</span>
       </div>
       {balance === 0 && estimateAmount > 0 && (
         <div className="claiming-auto-note">

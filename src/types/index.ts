@@ -9,6 +9,30 @@ export type Stage =
 
 export type ClaimType = 'injury' | 'property' | 'both'
 
+export type OrgRole = 'owner' | 'manager' | 'viewer'
+
+export type Organization = {
+  id: string
+  bizRegistrationNo: string
+  bizName: string
+  bizCeo: string
+  bizAddress: string
+  bizPhone: string
+  bizMobile: string
+  createdAt: string
+  updatedAt: string
+}
+
+export type OrgMember = {
+  id: string
+  orgId: string
+  userId: string
+  role: OrgRole
+  displayName: string
+  managerName: string
+  joinedAt: string
+}
+
 export type Comment = {
   id: string
   author: string

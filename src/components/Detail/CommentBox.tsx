@@ -6,9 +6,10 @@ import { useAuth } from '../../contexts/AuthContext'
 type Props = {
   comments: Comment[]
   onAdd: (text: string, author: string) => Promise<void>
+  canEdit?: boolean
 }
 
-export default function CommentBox({ comments, onAdd }: Props) {
+export default function CommentBox({ comments, onAdd, canEdit = true }: Props) {
   const { profile } = useAuth()
   const [text, setText] = useState('')
   const [author, setAuthor] = useState(profile?.displayName || '')
@@ -49,31 +50,33 @@ export default function CommentBox({ comments, onAdd }: Props) {
           </div>
         ))}
       </div>
-      <div className="comment-input">
-        <input
-          type="text"
-          className="comment-author-input"
-          value={author}
-          onChange={(e) => setAuthor(e.target.value)}
-          placeholder="작성자"
-        />
-        <div className="comment-text-row">
-          <textarea
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="메시지를 입력하세요..."
-            rows={2}
+      {canEdit && (
+        <div className="comment-input">
+          <input
+            type="text"
+            className="comment-author-input"
+            value={author}
+            onChange={(e) => setAuthor(e.target.value)}
+            placeholder="작성자"
           />
-          <button
-            className="btn-comment-send"
-            onClick={handleAdd}
-            disabled={sending}
-          >
-            {sending ? '...' : '전송'}
-          </button>
+          <div className="comment-text-row">
+            <textarea
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="메시지를 입력하세요..."
+              rows={2}
+            />
+            <button
+              className="btn-comment-send"
+              onClick={handleAdd}
+              disabled={sending}
+            >
+              {sending ? '...' : '전송'}
+            </button>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }
