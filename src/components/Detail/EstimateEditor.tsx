@@ -48,7 +48,7 @@ export default function EstimateEditor({ jobId, address, onClose, onSaved, canEd
   const [biz, setBiz] = useState<BizProfile>({
     bizRegistrationNo: '', bizName: '', bizCeo: '', bizAddress: '', bizPhone: '',
   })
-  const [editingBiz, setEditingBiz] = useState(false)
+  const [editingBiz] = useState(false)
 
   const [laborTree, setLaborTree] = useState<CodeItem[]>([])
   const [materialTree, setMaterialTree] = useState<CodeItem[]>([])
